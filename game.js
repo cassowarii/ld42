@@ -56,16 +56,6 @@ function registerImages(hash, callback) {
         totalImages += ncolors;
         registerImage(key, hash[key], callback);
     }
-    var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!0123456789-";
-    for (var i = 0; i < letters.length; i++) {
-        var letter = letters[i];
-        totalImages += ncolors;
-        if (/^[a-z]$/.test(letter)) {
-            registerImage(letter, "lower"+letter+".png", callback);
-        } else {
-            registerImage(letter, letter+".png", callback);
-        }
-    }
 }
 
 function registerImage(id, src, callback) {
@@ -247,7 +237,6 @@ function unGameOver() {
     //bgm.pause();
     //bgm.currentTime = 0;
     objs = {};
-    dead = false;
     gameover = false;
     justStarted = true;
     deleteObject('gameOverText');
@@ -380,9 +369,7 @@ function loop(timestamp) {
     timedelta += timestamp - lastFrameTime;
     lastFrameTime = timestamp;
 
-    if (!dead && !gameover) {
-        keydo();
-    }
+    keydo();
 
     while (timedelta >= framestep) {
         if (!paused) {
