@@ -142,13 +142,13 @@ var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
 var colors = {black: '0,0,0', red: '255,0,0', blue: '0,0,225', magenta: '212,0,115', purple: '200,0,255',
-                green: '192,255,167', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170' };
+                green: '0,255,0', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170' };
 var ncolors = 0; for (var n in colors) { ncolors ++; }
 
 var mapScale = 2;
 var mapWidth = 13;
 var mapHeight = 13;
-var tileSize = 20;
+var tileSize = 18;
 
 var ctx;
 
@@ -233,11 +233,7 @@ function unGameOver() {
     //bgm.pause();
     //bgm.currentTime = 0;
     objs = {};
-    gameover = false;
     justStarted = true;
-    deleteObject('gameOverText');
-    deleteObject('finalScoreText');
-    lives = 5;
     initialize();
     //loop();
 }
@@ -259,8 +255,6 @@ document.onkeyup = function(e) {
             if (justStarted) {
                 justStarted = false;
                 onStart();
-            } else if (gameover) {
-                unGameOver();
             } else {
                 if (key == e.keyCode) {
                     key = 0;
@@ -349,10 +343,8 @@ function keydo() {
         dirToPush = directions.right;
     } else if (key == 40) {
         dirToPush = directions.down;
-    } else if (key == 32) {
-        dirToPush = 'PUT';
     }
-    if (dirToPush != null && dirToPush != me.dir) {
+    if (dirToPush != null && me.dist == 0) {
         inputQueue.push(dirToPush);
     }
 }
@@ -486,13 +478,14 @@ function draw() {
                 } else {
                     ctx.fillStyle = bgcolor;
                 }
-                ctx.shadowColor = ctx.fillStyle;
-                ctx.shadowBlur = 5;
+                ctx.shadowBlur = 0;
                 ctx.beginPath();
                 ctx.rect(0, 0, tileSize, tileSize);
                 ctx.fill();
-                ctx.translate(0.5, 0.5);
+                ctx.translate(1, 1);
 
+                ctx.shadowColor = obj.color;
+                ctx.shadowBlur = 5;
                 var img = images[obj.imgid+'//'+obj.color];
                 if (img != undefined) {
                     if (obj.dir != 0) {
