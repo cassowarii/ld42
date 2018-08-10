@@ -8,9 +8,7 @@ var bgcolor = 'rgb(20,20,20)';
 
 var epsilon = 10;
 
-var bgm;
-var gameoverMusic;
-var ding;
+//var //bgm;
 
 var muted = false;
 
@@ -131,22 +129,6 @@ function editText(name, text) {
     objs[name] = t;
 }
 
-function createText(name, x, y, color, text) {
-    var t = [];
-    text = text.toString();
-    var ox = x;
-    for (var i in text) {
-        if (text[i] != "\n") {
-            t.push(new obj(name, text[i], x, y, 0, color));
-            x ++;
-        } else {
-            x = ox;
-            y ++;
-        }
-    }
-    objs[name] = t;
-}
-
 function obj(group, imgid, x, y, dir, color) {
     this.x = x;
     this.y = y;
@@ -212,11 +194,11 @@ ready(function() {
         char: 'char.png',
     }, function() {
         if (audiocheck.canPlayType('audio/mpeg')) {
-            bgm = new Audio('walkabout.mp3');
+            //bgm = new Audio('walkabout.mp3');
         } else if (audiocheck.canPlayType('audio/ogg')) {
-            bgm = new Audio('walkabout.ogg');
+            //bgm = new Audio('walkabout.ogg');
         }
-        bgm.loop = true;
+        //bgm.loop = true;
         initialize();
         loop();
     });
@@ -232,13 +214,6 @@ function updateLives() {
         heart = new obj('lives', 'heart', mapWidth-1-i, mapHeight, 0, 'pink');
         heart.bgcolor = 'black';
         objs.lives.push(heart);
-    }
-}
-
-function is_grey(x, y) {
-    if (x == Math.floor(mapWidth/2) || y == Math.floor(mapHeight/2)
-            || x == 0 || y == 0 || x == mapWidth - 1 || y == mapHeight - 1) {
-        return true;
     }
 }
 
@@ -269,8 +244,8 @@ var inputQueue = []
 
 function unGameOver() {
     console.log("hi");
-    bgm.pause();
-    bgm.currentTime = 0;
+    //bgm.pause();
+    //bgm.currentTime = 0;
     objs = {};
     dead = false;
     gameover = false;
@@ -470,27 +445,15 @@ document.getElementById("pause").onclick = function(e) {
 document.getElementById("mute").onclick = function(e) {
     muted = !muted;
     if (muted) {
-        bgm.pause();
+        //bgm.pause();
         document.getElementById("mute").innerHTML = "muted";
     } else {
         if (!justStarted && !dead) {
-            bgm.play();
+            //bgm.play();
         }
         document.getElementById("mute").innerHTML = "mute";
     }
     clickedOnAButton = true;
-}
-
-function die() {
-    console.log("We died...");
-    dead = true;
-    deathDist = 0;
-    deathTimer = -deathPause;
-    bgm.pause();
-
-    if (!muted) {
-        setTimeout(function() { gameoverMusic.play(); }, deathPause * framestep);
-    }
 }
 
 function shuffle(a) {
@@ -506,7 +469,7 @@ function shuffle(a) {
 function onStart() {
     deleteObject('title');
     changeTextColor('score', 'white');
-    if (!muted) bgm.play();
+    //if (!muted) //bgm.play();
 }
 
 var timespeed = 1;
@@ -540,6 +503,8 @@ function draw() {
                 } else {
                     ctx.fillStyle = bgcolor;
                 }
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 5;
                 ctx.beginPath();
                 ctx.rect(0, 0, tileSize, tileSize);
                 ctx.fill();
