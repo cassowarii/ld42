@@ -146,8 +146,8 @@ var colors = {black: '0,0,0', red: '255,0,0', blue: '0,0,225', magenta: '212,0,1
 var ncolors = 0; for (var n in colors) { ncolors ++; }
 
 var mapScale = 2;
-var mapWidth = 13;
-var mapHeight = 13;
+var mapWidth = 20;
+var mapHeight = 15;
 var tileSize = 18;
 
 var ctx;
@@ -178,6 +178,7 @@ ready(function() {
     loading.src = 'loading.png';
     registerImages({
         char: 'char.png',
+        box: 'box.png',
     }, function() {
         if (audiocheck.canPlayType('audio/mpeg')) {
             //bgm = new Audio('walkabout.mp3');
@@ -207,6 +208,8 @@ function initialize() {
     objs = {};
 
     objs.me = [ new obj('char', 'char', Math.floor(mapWidth/2), Math.floor(mapHeight/2), 0, 'green') ];
+    me = objs.me; // shorter name
+    me.slidy = true;
 
     readyToGo = true;
 }
@@ -449,7 +452,33 @@ function onStart() {
 
 var timespeed = 1;
 
+var movespeed = 2;
+
 function update(delta) {
+    if (me.dist < 1 && me.dir != 0) {
+        var moveAmt = movespeed * delta / 1000;
+        me.dist += moveAmt;
+        switch(me.dir) {
+            case directions.up:
+                me.y -= moveAmt;
+                break;
+            case directions.down:
+                me.y += moveAmt;
+                break;
+            case directions.left:
+                me.x -= moveAmt;
+                break;
+            case directions.right:
+                me.x += moveAmt;
+                break;
+        }
+    }
+    if (inputQueue.length > 0) {
+        var dir = inputQueue.shift();
+        if (me.dir == 0) {
+            me.dir = dir;
+        }
+    }
 }
 
 function draw() {
@@ -469,7 +498,11 @@ function draw() {
                 var obj = objs[group][o];
 
                 ctx.save();
-                ctx.translate(Math.floor(obj.x) * tileSize, Math.floor(obj.y) * tileSize);
+                if (objs[group].slidy != undefined) {
+                    ctx.translate(obj.x * tileSize, obj.y * tileSize);
+                } else {
+                    ctx.translate(Math.floor(obj.x) * tileSize, Math.floor(obj.y) * tileSize);
+                }
                 //console.log(obj.bgcolor, objs[group].bgcolor);
                 if (obj.bgcolor != undefined) {
                     ctx.fillStyle = 'rgb('+colors[obj.bgcolor]+')';
