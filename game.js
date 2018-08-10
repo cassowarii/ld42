@@ -142,12 +142,8 @@ var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
 var colors = {black: '0,0,0', red: '255,0,0', blue: '0,0,225', magenta: '212,0,115', purple: '200,0,255',
-                pink: '255,0,150', orange: '255,136,0', vermilion: '255,88,0', white: '255,255,255',
-                ltgreen: '192,255,167', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170',
-                vdkgreen: '1,151,0' };
+                green: '192,255,167', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170' };
 var ncolors = 0; for (var n in colors) { ncolors ++; }
-
-var colorMatchups = ['vermilion', 'blue', 'magenta', 'purple', 'pink', 'orange' ];
 
 var mapScale = 2;
 var mapWidth = 13;
@@ -248,7 +244,7 @@ function unGameOver() {
 
 document.onkeydown = function(e) {
     if (!justStarted) {
-        if (!paused && !gameover && readyToGo) {
+        if (!paused && readyToGo) {
             key = e.keyCode;
             if (37 <= key && 40 >= key || key == 32) {
                 e.preventDefault();
