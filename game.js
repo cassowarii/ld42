@@ -90,40 +90,12 @@ function deleteObject(name) {
     delete objs[name];
 }
 
-function changeTextColor(name, color) {
-    for (var i in objs[name]) {
-        objs[name][i].color = color;
-    }
-}
-
-function editText(name, text) {
-    var t = [];
-    if (objs[name].bgcolor != undefined) {
-        t.bgcolor = objs[name].bgcolor;
-    }
-    var first = objs[name][0];
-    text = text.toString();
-    var ox = first.x;
-    var y = first.y;
-    var x = ox;
-    var color = first.color;
-    for (var i in text) {
-        if (text[i] != "\n") {
-            t.push(new obj(name, text[i], x, y, 0, color));
-            x ++;
-        } else {
-            x = ox;
-            y ++;
-        }
-    }
-    objs[name] = t;
-}
-
-function obj(group, imgid, x, y, dir, color) {
+function obj(group, imgid, x, y, color) {
     this.x = x;
     this.y = y;
     this.z = 0;
-    this.dir = dir;
+    this.dir = 0;
+    this.dist = 0;
     this.imgloaded = false;
     this.imgid = imgid;
     this.color = color;
@@ -156,7 +128,7 @@ var keepGoing = true;
 
 var readyToGo = false;
 
-var justStarted = true;
+var justStarted = false;
 
 var audiocheck = document.createElement('audio');
 
@@ -195,21 +167,15 @@ var score = 0;
 
 var lives = 5;
 
-function updateLives() {
-    objs.lives = [];
-    for (var i = 0; i < lives; i++) {
-        heart = new obj('lives', 'heart', mapWidth-1-i, mapHeight, 0, 'pink');
-        heart.bgcolor = 'black';
-        objs.lives.push(heart);
-    }
-}
-
 function initialize() {
+    framestep = initialframestep;
+
     objs = {};
 
-    objs.me = [ new obj('char', 'char', Math.floor(mapWidth/2), Math.floor(mapHeight/2), 0, 'green') ];
-    me = objs.me; // shorter name
-    me.slidy = true;
+    objs.me = [ new obj('char', 'char', Math.floor(mapWidth/2), Math.floor(mapHeight/2), 'green') ];
+    objs.me.slidy = true; // slidy allows it to have fractional coordinates
+    me = objs.me[0]; // shorter name for ungrouped object (objects are in lists for snakes and whatnot that take up multiple tiles)
+    me.movedir = 0; // direction we're currently sliding in
 
     readyToGo = true;
 }
@@ -347,7 +313,7 @@ function keydo() {
     } else if (key == 40) {
         dirToPush = directions.down;
     }
-    if (dirToPush != null && me.dist == 0) {
+    if (dirToPush != null) {
         inputQueue.push(dirToPush);
     }
 }
@@ -452,13 +418,20 @@ function onStart() {
 
 var timespeed = 1;
 
-var movespeed = 2;
+var movespeed = 5;
 
 function update(delta) {
-    if (me.dist < 1 && me.dir != 0) {
+    if (inputQueue.length > 0) {
+        var dir = inputQueue.shift();
+        if (me.movedir == 0) {
+            me.movedir = dir;
+        }
+    }
+
+    if (me.dist < 1 && me.movedir != 0) {
         var moveAmt = movespeed * delta / 1000;
         me.dist += moveAmt;
-        switch(me.dir) {
+        switch(me.movedir) {
             case directions.up:
                 me.y -= moveAmt;
                 break;
@@ -471,13 +444,15 @@ function update(delta) {
             case directions.right:
                 me.x += moveAmt;
                 break;
+            default: console.log("help what" + me.movedir);
         }
     }
-    if (inputQueue.length > 0) {
-        var dir = inputQueue.shift();
-        if (me.dir == 0) {
-            me.dir = dir;
-        }
+
+    if (me.dist >= 1) {
+        me.dist = 0;
+        me.movedir = 0;
+        me.x = Math.round(me.x);
+        me.y = Math.round(me.y);
     }
 }
 
