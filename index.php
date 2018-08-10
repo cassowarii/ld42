@@ -1,12 +1,12 @@
 <html>
 <head><title>
-    mirror garden
+    game time fun time
 </title>
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, width=100%, target-densitydpi=device-dpi, user-scalable=no" />
 </head>
 <body style="background:#000; color:#fff; touch-action: none; position: fixed; overflow-y: hidden; width: 100%">
 <div style="text-align: center; width:100%; max-width:840px; margin: auto; margin-top: 10px; position: relative;">
-    <h4>mirror garden</h4>
+    <h4>i don't know what its called yet</h4>
 <canvas id="canvas" width="416" height="448" style="max-width:100%"> </canvas>
 <br />
 <button id="pause">pause</button>
