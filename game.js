@@ -20,7 +20,7 @@ function goodmod(x, n) {
      return ((x%n)+n)%n;
 }
 
-var goalShapes = [ ['pRpDp', false], ['pRpDp', false] ];
+var goalShapes = [ ['yRoDv', false], ['pRpDtRpDp', false] ];
 
 window.requestAnimFrame = (function() {
     return window.requestAnimationFrame      ||
@@ -113,7 +113,9 @@ function obj(group, imgid, x, y, color) {
 var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
-var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', dkgrey: '100,100,100', pink: '255,0,150', turquoise: '0,243,192', bg: '20,20,20' };
+var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', dkgrey: '60,60,60',
+              pink: '255,0,150', turquoise: '0,243,192', bg: '20,20,20', blue: '0,0,255',
+              yellow: '255,255,0', orange: '255,100,0', purple: '200,0,255' };
 var bgcolor = 'rgb('+colors.bg+')';
 
 var ncolors = 0; for (var n in colors) { ncolors ++; }
@@ -151,7 +153,11 @@ ready(function() {
     loading.src = 'loading.png';
     registerImages({
         char: 'char.png',
-        box: 'box.png',
+        boxpink: 'boxpink.png',
+        boxpurple: 'boxpurple.png',
+        boxyellow: 'boxyellow.png',
+        boxturquoise: 'boxturquoise.png',
+        boxorange: 'boxorange.png',
         nub: 'nub.png',
         goal: 'goal.png',
         boxdead: 'boxdead.png',
@@ -182,11 +188,14 @@ function initialize() {
     me = objs.me[0]; // shorter name for ungrouped object (objects are in lists for snakes and whatnot that take up multiple tiles)
     me.movedir = 0; // direction we're currently sliding in
 
-    objs.boxes = [  new obj('boxes', 'box', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'box', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'box', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'turquoise'),
-                    new obj('boxes', 'box', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'box', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2), 'pink'),
+    objs.boxes = [  new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'boxturquoise', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'turquoise'),
+                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'boxpurple', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2)+3, 'purple'),
+                    new obj('boxes', 'boxorange', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2)+3, 'orange'),
+                    new obj('boxes', 'boxyellow', Math.floor(mapWidth/2)+6, Math.floor(mapHeight/2)+3, 'yellow'),
                  ];
     objs.boxes.slidy = true;
 
@@ -441,7 +450,7 @@ var movespeed = 5;
 
 function canMove(obj) {
     // We can move boxes that haven't been 'solidified'.
-    if (obj.imgid == 'box' && !obj.rooted) return true;
+    if (obj.group == 'boxes' && obj.color != 'grey') return true;
     return false;
 }
 
@@ -478,20 +487,23 @@ function nudge(obj, dir) {
 function boxAtPos(x,y) {
     var os = objsAtPos(x,y);
     if (os.length < 1) return null;
-    if (os[0].imgid == 'box') return os[0];
+    if (os[0].group == 'boxes') return os[0];
     return null;
 }
 
 function killBox(box) {
     console.log("killing box at ", box.x, box.y);
     box.changeColor('grey');
-    box.changeImage('boxdead');
+    //box.changeImage('boxdead');
 }
 
 function boxColor(ch) {
-    switch(ch) {
+    switch(ch.toUpperCase()) {
         case 'P': return 'pink';
         case 'T': return 'turquoise';
+        case 'O': return 'orange';
+        case 'Y': return 'yellow';
+        case 'V': return 'purple'; // violet
         default: console.log("unknown color character", ch);
     }
 }
@@ -587,8 +599,11 @@ function update(delta) {
         }
     }
 
+
     if (me.dist == 0 && pushing) {
         // finished a push, check goal shapes
+        var complete = true;
+
         // Goal shapes encoded as list of pairs: first element a string
         // describing the shape, second element a boolean whether we did it already or not
         for (var i in goalShapes) {
@@ -600,6 +615,13 @@ function update(delta) {
                     goalShapes[i][1] = true;
                 }
             }
+            if (!goalShapes[i][1]) {
+                complete = false;
+            }
+        }
+
+        if (complete) {
+            // complete level!
         }
     }
 }
@@ -644,7 +666,7 @@ function draw() {
 
     Object.keys(objs).sort(function(a, b) { return (objs[a].z || 0) >= (objs[b].z || 0) }).map(function(group) {
         for (var o in objs[group]) {
-            if (o != 'bgcolor' && o != 'z') {
+            if (o != 'bgcolor' && o != 'z' && o != 'slidy') {
                 var obj = objs[group][o];
 
                 ctx.save();
@@ -677,6 +699,69 @@ function draw() {
     ctx.restore();
 }
 
+function goalShapeDimensions(shape) {
+    shape = shape.toUpperCase();
+    var minX = 0;
+    var maxX = 0;
+    var minY = 0;
+    var maxY = 0;
+    var x = 0;
+    var y = 0;
+    while (shape.length > 1) {
+        dir = shape[1];
+        switch(dir) {
+            case 'R':
+                x ++;
+                if (x > maxX) maxX = x;
+                break;
+            case 'L':
+                x --;
+                if (x < minX) minX = x;
+                break;
+            case 'U':
+                y --;
+                if (y < minY) minY = y;
+                break;
+            case 'D':
+                y ++;
+                if (y > maxY) maxY = y;
+                break;
+        }
+        shape = shape.substring(2);
+    }
+
+    // the negative average of the max and min x/y will give us the offset of the first
+    // box relative to the center (since the first box by definition is at (0,0))
+    return [maxX - minX + 1, maxY - minY + 1, -(maxX + minX) / 2, -(maxY + minY) / 2];
+}
+
+var smallShapeSize = 5; // actually 1 more than box size -- it's the grid size that the boxes are placed on
+                        // (so we make it 1 more to get 1-pixel spacing between boxes)
+
+function drawGoalShape(startX, startY, shape, complete) {
+    boxType = shape[0];
+
+    var color = boxColor(boxType);
+    if (complete) color = 'green';
+    ctx.shadowBlur = 2;
+    ctx.shadowColor = 'rgb(' + colors[color] + ')';
+    ctx.drawImage(images['nub//' + color], startX, startY);
+
+    if (shape.length > 1) {
+        dir = shape[1];
+        restShape = shape.substring(2);
+        nextX = startX;
+        nextY = startY;
+        switch(dir) {
+            case 'R': nextX += smallShapeSize; break;
+            case 'L': nextX -= smallShapeSize; break;
+            case 'D': nextY += smallShapeSize; break;
+            case 'U': nextY -= smallShapeSize; break;
+        }
+        drawGoalShape(nextX, nextY, restShape, complete);
+    }
+}
+
 function drawStatusBar() {
     ctx.save();
     ctx.translate(0, mapHeight * tileSize);
@@ -686,8 +771,19 @@ function drawStatusBar() {
     ctx.shadowColor = ctx.fillStyle;
     ctx.rect(-5, 0, mapWidth * tileSize + 5, tileSize + 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.drawImage(images['goal//bg'], 2, 2);
+    ctx.shadowBlur = 1;
+    ctx.shadowColor = 'rgb('+colors.grey+')';
+    ctx.drawImage(images['goal//grey'], 2, 2);
+
+    var overWidth = 0;
+
+    for (var i in goalShapes) {
+        var dims = goalShapeDimensions(goalShapes[i][0]);
+        overWidth += dims[0] + 2;
+        drawGoalShape(30 + (overWidth + dims[2]) * smallShapeSize,
+                      11 - dims[1]/2 * smallShapeSize,
+                      goalShapes[i][0], goalShapes[i][1]);
+    }
 
     ctx.restore();
 }
