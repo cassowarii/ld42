@@ -22,6 +22,8 @@ function goodmod(x, n) {
      return ((x%n)+n)%n;
 }
 
+var goalShapes = [ ['pRpDp', false], ['pRpDp', false] ];
+
 window.requestAnimFrame = (function() {
     return window.requestAnimationFrame      ||
         window.webkitRequestAnimationFrame   ||
@@ -113,12 +115,11 @@ function obj(group, imgid, x, y, color) {
 var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
-var colors = {black: '0,0,0', red: '255,0,0', blue: '0,0,225', magenta: '212,0,115', purple: '200,0,255',
-                green: '0,255,0', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170', pink: '255,0,150' };
+var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', pink: '255,0,150', turquoise: '0,243,192' };
 var ncolors = 0; for (var n in colors) { ncolors ++; }
 
 var mapScale = 2;
-var mapWidth = 20;
+var mapWidth = 15;
 var mapHeight = 15;
 var tileSize = 18;
 
@@ -151,6 +152,8 @@ ready(function() {
     registerImages({
         char: 'char.png',
         box: 'box.png',
+        nub: 'nub.png',
+        boxdead: 'boxdead.png',
         wall: 'wall.png',
     }, function() {
         if (audiocheck.canPlayType('audio/mpeg')) {
@@ -180,7 +183,7 @@ function initialize() {
 
     objs.boxes = [  new obj('boxes', 'box', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2), 'pink'),
                     new obj('boxes', 'box', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'box', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'box', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'turquoise'),
                     new obj('boxes', 'box', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2), 'pink'),
                     new obj('boxes', 'box', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2), 'pink'),
                  ];
@@ -482,6 +485,74 @@ function nudge(obj, dir) {
     }
 }
 
+function boxAtPos(x,y) {
+    var os = objsAtPos(x,y);
+    if (os.length < 1) return null;
+    if (os[0].imgid == 'box') return os[0];
+    return null;
+}
+
+function killBox(box) {
+    console.log("killing box at ", box.x, box.y);
+    box.changeColor('grey');
+    box.changeImage('boxdead');
+}
+
+function boxColor(ch) {
+    switch(ch) {
+        case 'P': return 'pink';
+        case 'T': return 'turquoise';
+        default: console.log("unknown color character", ch);
+    }
+}
+
+function checkShape(box, shape) {
+    // base case
+    if (shape.length == 1) {
+        if (box.color == boxColor(shape[0])) {
+            killBox(box);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    if (box.imgid == 'boxdead') {
+        return false;
+    }
+
+    // otherwise is the rest of the shape good?
+    shape = shape.toUpperCase();
+
+    var color = shape[0];
+    if (box.color != boxColor(color)) {
+        return false;
+    }
+
+    var firstDir = shape[1];
+    var rest = shape.substring(2);
+    var nextX = box.x;
+    var nextY = box.y;
+    switch(firstDir) {
+        case 'R': nextX ++; break;
+        case 'L': nextX --; break;
+        case 'D': nextY ++; break;
+        case 'U': nextY --; break;
+        default: console.log("houston we have a problem!?!?", firstDir);
+    }
+
+    var nextbox = boxAtPos(nextX, nextY);
+    if (nextbox) {
+        var valid = checkShape(nextbox, rest);
+        if (valid) {
+            killBox(box);
+        }
+        return valid;
+    } else {
+        return false;
+    }
+}
+
 function update(delta) {
     if (inputQueue.length > 0) {
         var dir = inputQueue.shift();
@@ -489,6 +560,9 @@ function update(delta) {
             nudge(me, dir);
         }
     }
+
+    var pushing = false;
+    if (me.dist != 0) pushing = true;
 
     for (var group in objs) {
         for (var o in objs[group]) {
@@ -523,6 +597,21 @@ function update(delta) {
         }
     }
 
+    if (me.dist == 0 && pushing) {
+        // finished a push, check goal shapes
+        // Goal shapes encoded as list of pairs: first element a string
+        // describing the shape, second element a boolean whether we did it already or not
+        for (var i in goalShapes) {
+            // Skip goal shapes we've completed already.
+            if (goalShapes[i][1]) continue;
+            // Otherwise check if each box is the beginning of a valid goal shape.
+            for (var j in objs.boxes) {
+                if (checkShape(objs.boxes[j], goalShapes[i][0])) {
+                    goalShapes[i][1] = true;
+                }
+            }
+        }
+    }
 }
 
 function drawObj(obj, group, ctx) {
@@ -594,6 +683,15 @@ function draw() {
         }
     });
     ctx.restore();
+
+    drawStatusBar();
+}
+
+function drawStatusBar() {
+    ctx.save();
+    ctx.scale(mapScale, mapScale);
+    // do the draw
+    ctx.restore;
 }
 
 // modified from http://www.playmycode.com/blog/2011/06/realtime-image-tinting-on-html5-canvas/
