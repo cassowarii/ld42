@@ -73,11 +73,59 @@ var levels = [
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
-        goals: ['vRyRoRt'],
+        goals: ['vRyRtRo'],
         text: 'You can push multiple boxes at a time.\n'
              +'Also, if you go off one side of the screen,\n'
              +'you\'ll end up on the other!\n'
-             +'Isn\'t that nifty?'
+             +'Isn\'t that nifty?',
+        congration: 'Your genius is truly astounding.'
+    },
+    {
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [X,X,X,X,X, X,X,X,X,X, X,X,X,X,X],
+             [0,0,0,T,0, 0,0,0,0,0, 0,0,O,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,O,0,T,0],
+             [0,0,0,T,0, 0,0,0,0,0, 0,0,O,0,0],
+             [X,X,X,X,X, X,Y,0,Y,X, X,X,X,X,X],
+
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,X,Y,X,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,C,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,X,X,0, 0,0,0,0,0]],
+        goals: ['yRyRy', 'oDoDo', 'tDtDt'],
+        text: 'When you complete one of your goals,\n'
+             +'the blocks you used will turn to stone.\n'
+             +'Be careful!',
+        congration: 'Yes! I\'m so proud of you.'
+    },
+    {
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [X,X,X,X,X, X,X,X,X,X, X,X,X,X,X],
+             [0,0,0,T,0, 0,0,0,0,0, 0,0,O,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,O,0,T,0],
+             [0,0,0,T,0, 0,Y,0,Y,0, 0,0,O,0,0],
+             [X,X,X,X,X, X,0,0,0,X, X,X,X,X,X],
+
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,X,Y,X,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,C,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,X,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['yRyRy', 'oDoDo', 'tDtDt'],
+        text: 'When you complete a goal, the blocks solidify.\n'
+             +'Be careful!',
+        congration: 'Your genius is truly astounding.'
     },
 ]
 
@@ -297,12 +345,18 @@ function unGameOver() {
     //loop();
 }
 
+var celebKeyDown = false;
+
 document.onkeydown = function(e) {
     if (!justStarted) {
         if (!paused && readyToGo) {
-            key = e.keyCode;
-            if (37 <= key && 40 >= key || key == 32) {
-                e.preventDefault();
+            if (celebrating && !e.repeat) {
+                celebKeyDown = true;
+            } else {
+                key = e.keyCode;
+                if (37 <= key && 40 >= key || key == 32) {
+                    e.preventDefault();
+                }
             }
         }
     }
@@ -311,19 +365,26 @@ document.onkeydown = function(e) {
 document.onkeyup = function(e) {
     if (readyToGo) {
         if (celebrating) {
-            nextLevel();
-        } else if (e.keyCode == 82 && !celebrating) {
-            reset();
-        } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
-            if (justStarted) {
-                justStarted = false;
-                onStart();
-            } else {
-                if (key == e.keyCode) {
-                    key = 0;
-                }
+            if (celebKeyDown) {
+                celebKeyDown = false;
+                nextLevel();
+                inputQueue = [];
+                key = 0;
             }
-            e.preventDefault();
+        } else {
+            if (e.keyCode == 82 && !celebrating) {
+                reset();
+            } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
+                if (justStarted) {
+                    justStarted = false;
+                    onStart();
+                } else {
+                    if (key == e.keyCode) {
+                        key = 0;
+                    }
+                }
+                e.preventDefault();
+            }
         }
     }
 }
@@ -925,7 +986,7 @@ function drawStatusBar() {
     for (var i in goalShapes) {
         var dims = goalShapeDimensions(goalShapes[i][0]);
         overWidth += dims[0] + 2;
-        drawGoalShape(20 + (overWidth + dims[2]) * smallShapeSize,
+        drawGoalShape(26 + (overWidth - dims[0]/2 + dims[2]) * smallShapeSize,
                       statusBarHeight / 2 - 1 - dims[1]/2 * smallShapeSize,
                       goalShapes[i][0], goalShapes[i][1]);
     }
