@@ -16,6 +16,45 @@ var clickedOnAButton = false;
 
 var me;
 
+var levelIndex = 0;
+
+var leveltext;
+
+var X = 1;
+var C = 2
+var Y = 3;
+var O = 4;
+var T = 5;
+var P = 6;
+var V = 7;
+
+var levels = [
+    {
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,X,X,X,X, X,X,X,X,X, X,X,X,X,0],
+             [0,X,0,0,0, 0,0,0,0,0, 0,0,0,X,0],
+             [0,X,0,P,0, T,0,P,0,0, 0,C,0,X,0],
+             [0,X,0,0,0, 0,0,0,0,0, 0,0,0,X,0],
+             [0,X,X,X,X, X,0,T,0,X, X,X,X,X,0],
+
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,0,P,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, X,X,X,X,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['pRtDpRtDp'],
+        text: 'Welcome to GAME NAME.\n'
+             +'See that GOAL at the bottom of the screen?\n'
+             +'Your mission is to arrange the boxes to match it.\n'
+             +'(Press R to reset the puzzle.)'
+    }
+]
+
 function goodmod(x, n) {
      return ((x%n)+n)%n;
 }
@@ -96,6 +135,7 @@ function obj(group, imgid, x, y, color) {
     this.z = 0;
     this.dir = 0;
     this.dist = 0;
+    this.movedir = 0;
     this.imgloaded = false;
     this.imgid = imgid;
     this.color = color;
@@ -186,27 +226,20 @@ function initialize() {
     objs.me = [ new obj('char', 'char', Math.floor(mapWidth/2), Math.floor(mapHeight/2), 'green') ];
     objs.me.slidy = true; // slidy allows it to have fractional coordinates
     me = objs.me[0]; // shorter name for ungrouped object (objects are in lists for snakes and whatnot that take up multiple tiles)
-    me.movedir = 0; // direction we're currently sliding in
 
-    objs.boxes = [  new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'boxturquoise', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'turquoise'),
-                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'boxpink', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2), 'pink'),
-                    new obj('boxes', 'boxpurple', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2)+3, 'purple'),
-                    new obj('boxes', 'boxorange', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2)+3, 'orange'),
-                    new obj('boxes', 'boxyellow', Math.floor(mapWidth/2)+6, Math.floor(mapHeight/2)+3, 'yellow'),
-                 ];
+    objs.boxes = [];
     objs.boxes.slidy = true;
 
-    objs.walls = [  new obj('walls', 'wall', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2)+1, 'grey'),
-                    new obj('walls', 'wall', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2)+1, 'grey'),
-                    new obj('walls', 'wall', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2)+1, 'grey'),
-                    new obj('walls', 'wall', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2)+1, 'grey'),
-                    new obj('walls', 'wall', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2)+1, 'grey'),
-                 ];
+    objs.walls = [];
+
+    loadLevel(0);
 
     readyToGo = true;
+}
+
+function nextLevel() {
+    levelIndex++;
+    loadLevel(levelIndex);
 }
 
 function randomColor() {
@@ -220,7 +253,7 @@ function randomColor() {
     var result;
     do {
         result = keys[keys.length * Math.random() << 0];
-    } while (result == 'black' || result == 'grey' || result == 'white');
+    } while (result == 'black' || result == 'grey' || result == 'white' || result == 'dkgrey');
     return result;
 }
 
@@ -248,8 +281,10 @@ document.onkeydown = function(e) {
 }
 
 document.onkeyup = function(e) {
-    if (!paused && readyToGo) {
-        if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
+    if (readyToGo) {
+        if (e.keyCode == 82) {
+            reset();
+        } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
             if (justStarted) {
                 justStarted = false;
                 onStart();
@@ -450,7 +485,7 @@ var movespeed = 5;
 
 function canMove(obj) {
     // We can move boxes that haven't been 'solidified'.
-    if (obj.group == 'boxes' && obj.color != 'grey') return true;
+    if (obj.group == 'boxes' && !obj.rooted || obj.group == 'me') return true;
     return false;
 }
 
@@ -494,7 +529,7 @@ function boxAtPos(x,y) {
 function killBox(box) {
     console.log("killing box at ", box.x, box.y);
     box.changeColor('grey');
-    //box.changeImage('boxdead');
+    box.rooted = true;
 }
 
 function boxColor(ch) {
@@ -626,6 +661,43 @@ function update(delta) {
     }
 }
 
+function reset() {
+    console.log("Reset!");
+    loadLevel(levelIndex);
+}
+
+function loadLevel(i) {
+    loadLevelObject(levels[i]);
+}
+
+function loadLevelObject(lo) {
+    objs.boxes = [];
+    objs.boxes.slidy = true;
+    objs.walls = [];
+    for (var y in lo.lv) {
+        for (var x in lo.lv[y]) {
+            px = parseInt(x);
+            py = parseInt(y);
+            switch(lo.lv[y][x]) {
+                case 0: /* nothing! */ break;
+                case Y: objs.boxes.push(new obj('boxes', 'boxyellow', px, py, 'yellow')); break;
+                case O: objs.boxes.push(new obj('boxes', 'boxorange', px, py, 'orange')); break;
+                case P: objs.boxes.push(new obj('boxes', 'boxpink', px, py, 'pink')); break;
+                case V: objs.boxes.push(new obj('boxes', 'boxpurple', px, py, 'purple')); break;
+                case T: objs.boxes.push(new obj('boxes', 'boxturquoise', px, py, 'turquoise')); break;
+                case C: me.x = px; me.y = py; console.log(me.x, me.y); break;
+                case X: objs.walls.push(new obj('walls', 'wall', px, py, 'grey')); break;
+                default: console.log("Unrecognized number in level:", lo.lv[y][x]);
+            }
+        }
+    }
+    goalShapes = [];
+    for (var i in lo.goals) {
+        goalShapes.push([lo.goals[i], false]);
+    }
+    leveltext = lo.text;
+}
+
 function drawObj(obj, group, ctx) {
     //console.log(obj.bgcolor, objs[group].bgcolor);
     ctx.save();
@@ -694,6 +766,18 @@ function draw() {
             }
         }
     });
+
+    if (window.leveltext != undefined) {
+        ctx.fillStyle = 'rgb('+colors.grey+')';
+        ctx.shadowBlur = 2;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.font = '9px serif';
+        var texts = leveltext.split('\n');
+        for (var i in texts) {
+            ctx.fillText(texts[i], 20, 28 + i * 12);
+        }
+    }
+
     drawStatusBar();
 
     ctx.restore();
@@ -762,6 +846,8 @@ function drawGoalShape(startX, startY, shape, complete) {
     }
 }
 
+var statusBarHeight = tileSize * 1.5;
+
 function drawStatusBar() {
     ctx.save();
     ctx.translate(0, mapHeight * tileSize);
@@ -769,19 +855,19 @@ function drawStatusBar() {
     ctx.beginPath();
     ctx.fillStyle = 'rgb('+colors.dkgrey+')';
     ctx.shadowColor = ctx.fillStyle;
-    ctx.rect(-5, 0, mapWidth * tileSize + 5, tileSize + 2);
+    ctx.rect(-5, 0, mapWidth * tileSize + 5, statusBarHeight + 2);
     ctx.fill();
-    ctx.shadowBlur = 1;
+    ctx.shadowBlur = 2;
     ctx.shadowColor = 'rgb('+colors.grey+')';
-    ctx.drawImage(images['goal//grey'], 2, 2);
+    ctx.drawImage(images['goal//grey'], 2, statusBarHeight / 2 - 8.5);
 
     var overWidth = 0;
 
     for (var i in goalShapes) {
         var dims = goalShapeDimensions(goalShapes[i][0]);
         overWidth += dims[0] + 2;
-        drawGoalShape(30 + (overWidth + dims[2]) * smallShapeSize,
-                      11 - dims[1]/2 * smallShapeSize,
+        drawGoalShape(24 + (overWidth + dims[2]) * smallShapeSize,
+                      statusBarHeight / 2 - 1 - dims[1]/2 * smallShapeSize,
                       goalShapes[i][0], goalShapes[i][1]);
     }
 
