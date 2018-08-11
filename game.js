@@ -4,8 +4,6 @@ var timedelta = 0;
 var initialframestep = 1000/60;
 var framestep;
 
-var bgcolor = 'rgb(20,20,20)';
-
 var epsilon = 10;
 
 //var //bgm;
@@ -115,7 +113,9 @@ function obj(group, imgid, x, y, color) {
 var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
-var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', pink: '255,0,150', turquoise: '0,243,192' };
+var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', dkgrey: '100,100,100', pink: '255,0,150', turquoise: '0,243,192', bg: '20,20,20' };
+var bgcolor = 'rgb('+colors.bg+')';
+
 var ncolors = 0; for (var n in colors) { ncolors ++; }
 
 var mapScale = 2;
@@ -153,6 +153,7 @@ ready(function() {
         char: 'char.png',
         box: 'box.png',
         nub: 'nub.png',
+        goal: 'goal.png',
         boxdead: 'boxdead.png',
         wall: 'wall.png',
     }, function() {
@@ -392,17 +393,6 @@ window.onblur = function(e) {
         unpauseOnFocus = true;
     }
     paused = true;
-}
-
-document.getElementById("pause").onclick = function(e) {
-    paused = !paused;
-    if (paused) {
-        document.getElementById("pause").innerHTML = "paused";
-    } else {
-        document.getElementById("pause").innerHTML = "pause";
-    }
-    unpausedByClick = false;
-    clickedOnAButton = true;
 }
 
 document.getElementById("mute").onclick = function(e) {
@@ -682,16 +672,24 @@ function draw() {
             }
         }
     });
-    ctx.restore();
-
     drawStatusBar();
+
+    ctx.restore();
 }
 
 function drawStatusBar() {
     ctx.save();
-    ctx.scale(mapScale, mapScale);
-    // do the draw
-    ctx.restore;
+    ctx.translate(0, mapHeight * tileSize);
+    ctx.shadowBlur = 3;
+    ctx.beginPath();
+    ctx.fillStyle = 'rgb('+colors.dkgrey+')';
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.rect(-5, 0, mapWidth * tileSize + 5, tileSize + 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.drawImage(images['goal//bg'], 2, 2);
+
+    ctx.restore();
 }
 
 // modified from http://www.playmycode.com/blog/2011/06/realtime-image-tinting-on-html5-canvas/
