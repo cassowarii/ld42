@@ -114,7 +114,7 @@ var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
 var colors = {black: '0,0,0', red: '255,0,0', blue: '0,0,225', magenta: '212,0,115', purple: '200,0,255',
-                green: '0,255,0', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170' };
+                green: '0,255,0', dkgreen: '109,243,89', grey: '200,200,200', dkgrey: '170,170,170', pink: '255,0,150' };
 var ncolors = 0; for (var n in colors) { ncolors ++; }
 
 var mapScale = 2;
@@ -151,6 +151,7 @@ ready(function() {
     registerImages({
         char: 'char.png',
         box: 'box.png',
+        wall: 'wall.png',
     }, function() {
         if (audiocheck.canPlayType('audio/mpeg')) {
             //bgm = new Audio('walkabout.mp3');
@@ -176,6 +177,21 @@ function initialize() {
     objs.me.slidy = true; // slidy allows it to have fractional coordinates
     me = objs.me[0]; // shorter name for ungrouped object (objects are in lists for snakes and whatnot that take up multiple tiles)
     me.movedir = 0; // direction we're currently sliding in
+
+    objs.boxes = [  new obj('boxes', 'box', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'box', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'box', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'box', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2), 'pink'),
+                    new obj('boxes', 'box', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2), 'pink'),
+                 ];
+    objs.boxes.slidy = true;
+
+    objs.walls = [  new obj('walls', 'wall', Math.floor(mapWidth/2)+1, Math.floor(mapHeight/2)+1, 'grey'),
+                    new obj('walls', 'wall', Math.floor(mapWidth/2)+2, Math.floor(mapHeight/2)+1, 'grey'),
+                    new obj('walls', 'wall', Math.floor(mapWidth/2)+3, Math.floor(mapHeight/2)+1, 'grey'),
+                    new obj('walls', 'wall', Math.floor(mapWidth/2)+4, Math.floor(mapHeight/2)+1, 'grey'),
+                    new obj('walls', 'wall', Math.floor(mapWidth/2)+5, Math.floor(mapHeight/2)+1, 'grey'),
+                 ];
 
     readyToGo = true;
 }
@@ -416,44 +432,97 @@ function onStart() {
     //if (!muted) //bgm.play();
 }
 
+function moveCoords(x, y, dir) {
+    switch(dir) {
+        case directions.up:     return [x, y-1];
+        case directions.down:   return [x, y+1];
+        case directions.left:   return [x-1, y];
+        case directions.right:  return [x+1, y];
+    }
+    return [x, y];
+}
+
 var timespeed = 1;
 
 var movespeed = 5;
+
+function canMove(obj) {
+    // We can move boxes that haven't been 'solidified'.
+    if (obj.imgid == 'box' && !obj.rooted) return true;
+    return false;
+}
+
+function freeUpSpace(x, y, dir) {
+    var os = objsAtPos(x,y);
+    if (os.length == 0) {
+        return true; // yes, we can move here
+    } else {
+        for (var i in os) {
+            if (canMove(os[i])) {
+                // If we can move it in theory, try moving it in practice.
+                if (!nudge(os[i], dir)) {
+                    return false;
+                }
+            } else {
+                // It's a lost cause.
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function nudge(obj, dir) {
+    var nextPos = moveCoords(obj.x, obj.y, dir);
+    if (freeUpSpace(nextPos[0], nextPos[1], dir)) {
+        obj.movedir = dir;
+        return true;
+    } else {
+        return false;
+    }
+}
 
 function update(delta) {
     if (inputQueue.length > 0) {
         var dir = inputQueue.shift();
         if (me.movedir == 0) {
-            me.movedir = dir;
+            nudge(me, dir);
         }
     }
 
-    if (me.dist < 1 && me.movedir != 0) {
-        var moveAmt = movespeed * delta / 1000;
-        me.dist += moveAmt;
-        switch(me.movedir) {
-            case directions.up:
-                me.y -= moveAmt;
-                break;
-            case directions.down:
-                me.y += moveAmt;
-                break;
-            case directions.left:
-                me.x -= moveAmt;
-                break;
-            case directions.right:
-                me.x += moveAmt;
-                break;
-            default: console.log("help what" + me.movedir);
+    for (var group in objs) {
+        for (var o in objs[group]) {
+            var obj = objs[group][o];
+            if (obj.movedir == undefined) continue;
+            if (obj.dist < 1 && obj.movedir != 0) {
+                var moveAmt = movespeed * delta / 1000;
+                obj.dist += moveAmt;
+                switch(obj.movedir) {
+                    case directions.up:
+                        obj.y -= moveAmt;
+                        break;
+                    case directions.down:
+                        obj.y += moveAmt;
+                        break;
+                    case directions.left:
+                        obj.x -= moveAmt;
+                        break;
+                    case directions.right:
+                        obj.x += moveAmt;
+                        break;
+                    default: console.log("help what" + obj.movedir);
+                }
+            }
+
+            if (obj.dist >= 1) {
+                obj.dist = 0;
+                obj.movedir = 0;
+                obj.x = Math.round(obj.x);
+                obj.y = Math.round(obj.y);
+            }
         }
     }
 
-    if (me.dist >= 1) {
-        me.dist = 0;
-        me.movedir = 0;
-        me.x = Math.round(me.x);
-        me.y = Math.round(me.y);
-    }
 }
 
 function draw() {
@@ -492,8 +561,8 @@ function draw() {
                 ctx.fill();
                 ctx.translate(1, 1);
 
-                ctx.shadowColor = obj.color;
-                ctx.shadowBlur = 5;
+                ctx.shadowColor = 'rgb(' + colors[obj.color] + ')';
+                ctx.shadowBlur = 3;
                 var img = images[obj.imgid+'//'+obj.color];
                 if (img != undefined) {
                     if (obj.dir != 0) {
