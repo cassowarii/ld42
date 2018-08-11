@@ -19,6 +19,7 @@ var me;
 var levelIndex = 0;
 
 var leveltext;
+var leveltitle;
 
 var X = 1;
 var C = 2
@@ -30,6 +31,7 @@ var V = 7;
 
 var levels = [
     {
+        title: 'Starting point',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -56,6 +58,7 @@ var levels = [
                    +'Press any key to go to the next level.'
     },
     {
+        title: 'Foyer',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -81,6 +84,7 @@ var levels = [
         congration: 'Your genius is truly astounding.'
     },
     {
+        title: 'Medusa',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -99,34 +103,106 @@ var levels = [
              [0,0,0,0,0, 0,X,C,X,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,X,X,X,0, 0,0,0,0,0]],
         goals: ['yRyRy', 'oDoDo', 'tDtDt'],
-        text: 'When you complete one of your goals,\n'
-             +'the blocks you used will turn to stone.\n'
+        text: 'When you complete a GOAL, the blocks you used\nwill turn to stone.\n'
              +'Be careful!',
         congration: 'Yes! I\'m so proud of you.'
     },
     {
+        title: 'The void',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,C,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,Y,Y,Y,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,Y,0,0, X,0,0,0,0],
+
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['yR_RyL Dy'],
+        text: 'Sometimes a GOAL contains an empty space.\n'
+             +'The absence of something can be just as powerful\nas its presence.',
+        congration: 'Yep, simple as that!'
+    },
+    {
+        title: 'Miscellany',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
 
-             [X,X,X,X,X, X,X,X,X,X, X,X,X,X,X],
-             [0,0,0,T,0, 0,0,0,0,0, 0,0,O,0,0],
-             [0,0,0,0,0, 0,0,0,0,0, 0,O,0,T,0],
-             [0,0,0,T,0, 0,Y,0,Y,0, 0,0,O,0,0],
-             [X,X,X,X,X, X,0,0,0,X, X,X,X,X,X],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, X,0,0,0,0],
+             [0,0,0,X,0, 0,0,X,0,0, X,0,0,0,0],
+             [0,0,0,X,0, 0,0,P,O,V, X,0,0,0,0],
+             [0,0,0,X,0, P,0,X,0,0, X,0,0,0,0],
 
-             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
-             [0,0,0,0,0, X,X,Y,X,X, 0,0,0,0,0],
-             [0,0,0,0,0, 0,X,C,X,0, 0,0,0,0,0],
-             [0,0,0,0,0, 0,X,X,X,0, 0,0,0,0,0],
+             [0,0,0,X,0, T,0,X,T,Y, X,0,0,0,0],
+             [0,0,0,X,0, C,0,X,0,0, X,0,0,0,0],
+             [0,0,0,X,0, 0,0,X,0,0, X,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, X,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
-        goals: ['yRyRy', 'oDoDo', 'tDtDt'],
-        text: 'When you complete a goal, the blocks solidify.\n'
-             +'Be careful!',
-        congration: 'Your genius is truly astounding.'
+        goals: ['tR*R*Ry', 'pR*R*Rv'],
+        text: 'Lastly, sometimes a certain space isn\'t\nimportant for the GOAL.\n'
+             +'Some things just aren\'t worth worrying about.\n'
+             +'(However, boxes we don\'t care about will still\nturn to stone.)',
+        congration: 'Not too complicated, right?'
     },
+    {
+        title: 'The Midas touch',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+             [0,0,0,0,X, 0,P,0,P,0, X,0,0,0,0],
+             [0,0,0,X,X, P,0,C,0,P, X,0,0,0,0],
+             [0,0,0,X,0, 0,P,0,P,0, X,0,0,0,0],
+             [0,0,0,X,0, P,0,0,X,X, X,0,0,0,0],
+
+             [0,0,0,X,0, 0,0,0,X,0, 0,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['pRpRp', 'pDp', 'pRp'],
+        text: 'Let\'s see if you can solve this one!',
+        congration: 'Of course you could solve it.\n'
+                   +'I never doubted you for a second.',
+    },
+    {
+        title: 'Countable infinity',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,X,X,X,X, X,X,0,0,0],
+             [X,X,X,X,X, X,X,0,0,0, 0,X,X,X,X],
+             [Y,Y,Y,Y,Y, Y,Y,Y,Y,Y, Y,Y,Y,Y,Y],
+             [X,X,X,X,X, X,X,0,C,0, 0,X,X,X,X],
+             [0,0,0,0,0, 0,X,X,X,X, X,X,0,0,0],
+
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['yR_RyL UyD Dy'],
+        text: 'Feeling a bit claustrophobic?',
+        congration: '(By the way, you\'re doing great!)',
+    }
 ]
 
 function goodmod(x, n) {
@@ -227,8 +303,8 @@ function obj(group, imgid, x, y, color) {
 var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
-var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', dkgrey: '60,60,60',
-              pink: '255,0,150', turquoise: '0,243,192', blue: '0,0,255',
+var colors = {black: '0,0,0', white:'255,255,255', green: '0,255,0', grey: '200,200,200',
+              dkgrey: '60,60,60', pink: '255,0,150', turquoise: '0,243,192', blue: '0,0,255',
               yellow: '255,255,0', orange: '255,100,0', purple: '200,0,255' };
 var bgcolor = 'rgb('+colors.bg+')';
 
@@ -273,6 +349,8 @@ ready(function() {
         boxturquoise: 'boxturquoise.png',
         boxorange: 'boxorange.png',
         nub: 'nub.png',
+        emptynub: 'emptynub.png',
+        questionnub: 'questionnub.png',
         goal: 'goal.png',
         boxdead: 'boxdead.png',
         wall: 'wall.png',
@@ -312,8 +390,7 @@ function initialize() {
 }
 
 function nextLevel() {
-    celebrating = false;
-    me.changeColor('green');
+    stopCelebrating();
     levelIndex++;
     loadLevel(levelIndex);
 }
@@ -367,9 +444,13 @@ document.onkeyup = function(e) {
         if (celebrating) {
             if (celebKeyDown) {
                 celebKeyDown = false;
-                nextLevel();
                 inputQueue = [];
                 key = 0;
+                if (e.keyCode == 82) {
+                    reset();
+                } else {
+                    nextLevel();
+                }
             }
         } else {
             if (e.keyCode == 82 && !celebrating) {
@@ -576,7 +657,7 @@ var movespeed = 5;
 
 function canMove(obj) {
     // We can move boxes that haven't been 'solidified'.
-    if (obj.group == 'boxes' && !obj.rooted || obj.group == 'me') return true;
+    if (obj.group == 'boxes' && !obj.rooted || obj.group == 'char') return true;
     return false;
 }
 
@@ -588,7 +669,10 @@ function freeUpSpace(x, y, dir) {
         for (var i in os) {
             if (canMove(os[i])) {
                 // If we can move it in theory, try moving it in practice.
-                if (!nudge(os[i], dir)) {
+                // Always succeed on the character -- this means we must have
+                // wrapped around the edge and come back, so the character's
+                // already moving.
+                if (os[i].group != 'char' && !nudge(os[i], dir)) {
                     return false;
                 }
             } else {
@@ -614,10 +698,12 @@ function boxAtPos(x,y) {
     var os = objsAtPos(x,y);
     if (os.length < 1) return null;
     if (os[0].group == 'boxes') return os[0];
+    if (os[0].group == 'char') return os[0]; // we want empty spaces to really be empty! but nothing can actually match us bc we're green
     return null;
 }
 
 function killBox(box) {
+    if (box == null) return;
     console.log("killing box at ", box.x, box.y);
     box.changeColor('grey');
     box.rooted = true;
@@ -630,14 +716,23 @@ function boxColor(ch) {
         case 'O': return 'orange';
         case 'Y': return 'yellow';
         case 'V': return 'purple'; // violet
+        case '_': return 'grey';
+        case '*': return 'white';
+        case ' ': return '';
         default: console.log("unknown color character", ch);
     }
 }
 
-function checkShape(box, shape) {
+function matchesPattern(box, pat) {
+    return (pat == '*' || pat == ' '
+         || box == null && pat == '_'
+         || box != null && box.color == boxColor(pat));
+}
+
+function checkShape(x, y, box, shape) {
     // base case
     if (shape.length == 1) {
-        if (box.color == boxColor(shape[0])) {
+        if (matchesPattern(box, shape[0])) {
             killBox(box);
             return true;
         } else {
@@ -645,7 +740,7 @@ function checkShape(box, shape) {
         }
     }
 
-    if (box.imgid == 'boxdead') {
+    if (box && box.color == 'grey' && shape[0] != '*') {
         return false;
     }
 
@@ -653,14 +748,14 @@ function checkShape(box, shape) {
     shape = shape.toUpperCase();
 
     var color = shape[0];
-    if (box.color != boxColor(color)) {
+    if (!matchesPattern(box, color)) {
         return false;
     }
 
     var firstDir = shape[1];
     var rest = shape.substring(2);
-    var nextX = box.x;
-    var nextY = box.y;
+    var nextX = x;
+    var nextY = y;
     switch(firstDir) {
         case 'R': nextX ++; break;
         case 'L': nextX --; break;
@@ -670,15 +765,12 @@ function checkShape(box, shape) {
     }
 
     var nextbox = boxAtPos(nextX, nextY);
-    if (nextbox) {
-        var valid = checkShape(nextbox, rest);
-        if (valid) {
-            killBox(box);
-        }
-        return valid;
-    } else {
-        return false;
+
+    var valid = checkShape(nextX, nextY, nextbox, rest);
+    if (valid) {
+        killBox(box);
     }
+    return valid;
 }
 
 var celebrating = false;
@@ -696,9 +788,15 @@ function update(delta) {
             }
             for (var i in objs.boxes) {
                 if (i == 'slidy') continue; // yay js
-                objs.boxes[i].changeColor(randomColor());
+                var oldColor = objs.boxes[i].color;
+                do {
+                    objs.boxes[i].changeColor(randomColor());
+                } while (objs.boxes[i].color == oldColor);
             }
-            me.changeColor(randomColor());
+            var oldColor = me.color;
+            do {
+                me.changeColor(randomColor());
+            } while (me.color == oldColor);
             miniCelebrationTimer = colorChangeInterval;
         }
     } else {
@@ -757,7 +855,7 @@ function update(delta) {
                 if (goalShapes[i][1]) continue;
                 // Otherwise check if each box is the beginning of a valid goal shape.
                 for (var j in objs.boxes) {
-                    if (checkShape(objs.boxes[j], goalShapes[i][0])) {
+                    if (checkShape(objs.boxes[j].x, objs.boxes[j].y, objs.boxes[j], goalShapes[i][0])) {
                         goalShapes[i][1] = true;
                     }
                 }
@@ -781,8 +879,14 @@ function celebrate() {
     }
 }
 
+function stopCelebrating() {
+    celebrating = false;
+    me.changeColor('green');
+}
+
 function reset() {
     console.log("Reset!");
+    stopCelebrating();
     loadLevel(levelIndex);
 }
 
@@ -816,6 +920,7 @@ function loadLevelObject(lo) {
         goalShapes.push([lo.goals[i], false]);
     }
     leveltext = lo.text;
+    leveltitle = lo.title;
 }
 
 function drawObj(obj, group, ctx) {
@@ -887,6 +992,12 @@ function draw() {
         }
     });
 
+    ctx.fillStyle = 'rgb('+colors.purple+')';
+    ctx.shadowBlur = 2;
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.font = 'bold 9px serif';
+    ctx.fillText((levelIndex+1) + ". " + leveltitle, 20, 28);
+
     if (window.leveltext != undefined) {
         ctx.fillStyle = 'rgb('+colors.grey+')';
         ctx.shadowBlur = 2;
@@ -894,7 +1005,7 @@ function draw() {
         ctx.font = '9px serif';
         var texts = leveltext.split('\n');
         for (var i in texts) {
-            ctx.fillText(texts[i], 20, 28 + i * 12);
+            ctx.fillText(texts[i], 20, 40 + i * 12);
         }
     }
 
@@ -903,7 +1014,7 @@ function draw() {
     ctx.restore();
 }
 
-function goalShapeDimensions(shape) {
+function goalShapeDimensions(shape, asdf) {
     shape = shape.toUpperCase();
     var minX = 0;
     var maxX = 0;
@@ -912,7 +1023,7 @@ function goalShapeDimensions(shape) {
     var x = 0;
     var y = 0;
     while (shape.length > 1) {
-        dir = shape[1];
+        var dir = shape[1];
         switch(dir) {
             case 'R':
                 x ++;
@@ -930,8 +1041,11 @@ function goalShapeDimensions(shape) {
                 y ++;
                 if (y > maxY) maxY = y;
                 break;
+            default:
+                console.log("! Unknown direction character", dir);
         }
         shape = shape.substring(2);
+        if (asdf != undefined) console.log(shape, x, y, minX, maxX, minY, maxY);
     }
 
     // the negative average of the max and min x/y will give us the offset of the first
@@ -945,11 +1059,16 @@ var smallShapeSize = 6; // actually 1 more than box size -- it's the grid size t
 function drawGoalShape(startX, startY, shape, complete) {
     boxType = shape[0];
 
+    var nubType = 'nub';
+    if (boxType == '_') nubType = 'emptynub';
+    if (boxType == '*') nubType = 'questionnub';
     var color = boxColor(boxType);
-    if (complete) color = 'green';
-    ctx.shadowBlur = 2;
-    ctx.shadowColor = 'rgb(' + colors[color] + ')';
-    ctx.drawImage(images['nub//' + color], startX, startY);
+    if (color != '') {
+        if (complete) color = 'green';
+        ctx.shadowBlur = 2;
+        ctx.shadowColor = 'rgb(' + colors[color] + ')';
+        ctx.drawImage(images[nubType + '//' + color], startX, startY);
+    }
 
     if (shape.length > 1) {
         dir = shape[1];
@@ -981,14 +1100,15 @@ function drawStatusBar() {
     ctx.shadowColor = 'rgb('+colors.grey+')';
     ctx.drawImage(images['goal//grey'], 2, statusBarHeight / 2 - 8.5);
 
-    var overWidth = 0;
+    var spacing = 6;
+    var overWidth = spacing/2;
 
     for (var i in goalShapes) {
         var dims = goalShapeDimensions(goalShapes[i][0]);
-        overWidth += dims[0] + 2;
-        drawGoalShape(26 + (overWidth - dims[0]/2 + dims[2]) * smallShapeSize,
-                      statusBarHeight / 2 - 1 - dims[1]/2 * smallShapeSize,
+        drawGoalShape(26 + (overWidth + spacing/2 + dims[2] - 0.5) * smallShapeSize,
+                      statusBarHeight / 2 - 1 + (dims[3] - 0.5) * smallShapeSize,
                       goalShapes[i][0], goalShapes[i][1]);
+        overWidth += spacing;
     }
 
     ctx.restore();
