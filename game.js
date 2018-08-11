@@ -51,8 +51,34 @@ var levels = [
         text: 'Welcome to GAME NAME.\n'
              +'See that GOAL at the bottom of the screen?\n'
              +'Your mission is to arrange the boxes to match it.\n'
-             +'(Press R to reset the puzzle.)'
-    }
+             +'(Press R to reset the puzzle.)',
+        congration: 'Congratulations!\n'
+                   +'Press any key to go to the next level.'
+    },
+    {
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [X,X,X,X,X, X,X,X,X,X, X,X,X,X,X],
+             [0,0,0,0,0, 0,0,X,0,0, 0,0,0,0,0],
+             [0,C,0,0,0, 0,0,X,0,0, 0,0,0,0,0],
+             [0,0,0,T,0, O,0,X,0,V, 0,Y,0,0,0],
+             [0,0,0,X,X, X,0,X,0,X, X,X,0,0,0],
+
+             [X,X,X,X,0, X,X,X,X,X, 0,X,X,X,X],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['vRyRoRt'],
+        text: 'You can push multiple boxes at a time.\n'
+             +'Also, if you go off one side of the screen,\n'
+             +'you\'ll end up on the other!\n'
+             +'Isn\'t that nifty?'
+    },
 ]
 
 function goodmod(x, n) {
@@ -154,7 +180,7 @@ var objs = {};
 
 //var colors = {black: '0,0,0', red: '255,0,0', green: '0,225,0', magenta: '255,235,0', blue: '0,0,255', purple: '200,0,255', magenta: '255,0,255', grey: '100,100,100', pink: '255,0,150'}
 var colors = {black: '0,0,0', green: '0,255,0', grey: '200,200,200', dkgrey: '60,60,60',
-              pink: '255,0,150', turquoise: '0,243,192', bg: '20,20,20', blue: '0,0,255',
+              pink: '255,0,150', turquoise: '0,243,192', blue: '0,0,255',
               yellow: '255,255,0', orange: '255,100,0', purple: '200,0,255' };
 var bgcolor = 'rgb('+colors.bg+')';
 
@@ -238,6 +264,8 @@ function initialize() {
 }
 
 function nextLevel() {
+    celebrating = false;
+    me.changeColor('green');
     levelIndex++;
     loadLevel(levelIndex);
 }
@@ -282,7 +310,9 @@ document.onkeydown = function(e) {
 
 document.onkeyup = function(e) {
     if (readyToGo) {
-        if (e.keyCode == 82) {
+        if (celebrating) {
+            nextLevel();
+        } else if (e.keyCode == 82 && !celebrating) {
             reset();
         } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
             if (justStarted) {
@@ -590,74 +620,103 @@ function checkShape(box, shape) {
     }
 }
 
+var celebrating = false;
+
+var miniCelebrationTimer = 0;
+var colorChangeInterval = 200; // interval in ms between changing colors in the celebration
+
 function update(delta) {
-    if (inputQueue.length > 0) {
-        var dir = inputQueue.shift();
-        if (me.movedir == 0) {
-            nudge(me, dir);
+    if (celebrating) {
+        inputQueue = [];
+        miniCelebrationTimer -= delta;
+        if (miniCelebrationTimer <= 0) {
+            for (var i in objs.walls) {
+                objs.walls[i].changeColor(randomColor());
+            }
+            for (var i in objs.boxes) {
+                if (i == 'slidy') continue; // yay js
+                objs.boxes[i].changeColor(randomColor());
+            }
+            me.changeColor(randomColor());
+            miniCelebrationTimer = colorChangeInterval;
         }
-    }
+    } else {
+        if (inputQueue.length > 0) {
+            var dir = inputQueue.shift();
+            if (me.movedir == 0) {
+                nudge(me, dir);
+            }
+        }
 
-    var pushing = false;
-    if (me.dist != 0) pushing = true;
+        var pushing = false;
+        if (me.dist != 0) pushing = true;
 
-    for (var group in objs) {
-        for (var o in objs[group]) {
-            var obj = objs[group][o];
-            if (obj.movedir == undefined) continue;
-            if (obj.dist < 1 && obj.movedir != 0) {
-                var moveAmt = movespeed * delta / 1000;
-                obj.dist += moveAmt;
-                switch(obj.movedir) {
-                    case directions.up:
-                        obj.y -= moveAmt;
-                        break;
-                    case directions.down:
-                        obj.y += moveAmt;
-                        break;
-                    case directions.left:
-                        obj.x -= moveAmt;
-                        break;
-                    case directions.right:
-                        obj.x += moveAmt;
-                        break;
-                    default: console.log("help what" + obj.movedir);
+        for (var group in objs) {
+            for (var o in objs[group]) {
+                var obj = objs[group][o];
+                if (obj.movedir == undefined) continue;
+                if (obj.dist < 1 && obj.movedir != 0) {
+                    var moveAmt = movespeed * delta / 1000;
+                    obj.dist += moveAmt;
+                    switch(obj.movedir) {
+                        case directions.up:
+                            obj.y -= moveAmt;
+                            break;
+                        case directions.down:
+                            obj.y += moveAmt;
+                            break;
+                        case directions.left:
+                            obj.x -= moveAmt;
+                            break;
+                        case directions.right:
+                            obj.x += moveAmt;
+                            break;
+                        default: console.log("help what" + obj.movedir);
+                    }
+                }
+
+                if (obj.dist >= 1) {
+                    obj.dist = 0;
+                    obj.movedir = 0;
+                    obj.x = goodmod(Math.round(obj.x), mapWidth);
+                    obj.y = goodmod(Math.round(obj.y), mapHeight);
+                }
+            }
+        }
+
+
+        if (me.dist == 0 && pushing) {
+            // finished a push, check goal shapes
+            var complete = true;
+
+            // Goal shapes encoded as list of pairs: first element a string
+            // describing the shape, second element a boolean whether we did it already or not
+            for (var i in goalShapes) {
+                // Skip goal shapes we've completed already.
+                if (goalShapes[i][1]) continue;
+                // Otherwise check if each box is the beginning of a valid goal shape.
+                for (var j in objs.boxes) {
+                    if (checkShape(objs.boxes[j], goalShapes[i][0])) {
+                        goalShapes[i][1] = true;
+                    }
+                }
+                if (!goalShapes[i][1]) {
+                    complete = false;
                 }
             }
 
-            if (obj.dist >= 1) {
-                obj.dist = 0;
-                obj.movedir = 0;
-                obj.x = goodmod(Math.round(obj.x), mapWidth);
-                obj.y = goodmod(Math.round(obj.y), mapHeight);
+            if (complete) {
+                celebrate();
             }
         }
     }
+}
 
-
-    if (me.dist == 0 && pushing) {
-        // finished a push, check goal shapes
-        var complete = true;
-
-        // Goal shapes encoded as list of pairs: first element a string
-        // describing the shape, second element a boolean whether we did it already or not
-        for (var i in goalShapes) {
-            // Skip goal shapes we've completed already.
-            if (goalShapes[i][1]) continue;
-            // Otherwise check if each box is the beginning of a valid goal shape.
-            for (var j in objs.boxes) {
-                if (checkShape(objs.boxes[j], goalShapes[i][0])) {
-                    goalShapes[i][1] = true;
-                }
-            }
-            if (!goalShapes[i][1]) {
-                complete = false;
-            }
-        }
-
-        if (complete) {
-            // complete level!
-        }
+function celebrate() {
+    miniCelebrationTimer = 0;
+    celebrating = true;
+    if (levels[levelIndex].congration != undefined) {
+        leveltext = levels[levelIndex].congration;
     }
 }
 
@@ -715,7 +774,7 @@ function drawObj(obj, group, ctx) {
     ctx.translate(1, 1);
 
     ctx.shadowColor = 'rgb(' + colors[obj.color] + ')';
-    ctx.shadowBlur = 3;
+    ctx.shadowBlur = 2;
     var img = images[obj.imgid+'//'+obj.color];
     if (img != undefined) {
         if (obj.dir != 0) {
@@ -819,7 +878,7 @@ function goalShapeDimensions(shape) {
     return [maxX - minX + 1, maxY - minY + 1, -(maxX + minX) / 2, -(maxY + minY) / 2];
 }
 
-var smallShapeSize = 5; // actually 1 more than box size -- it's the grid size that the boxes are placed on
+var smallShapeSize = 6; // actually 1 more than box size -- it's the grid size that the boxes are placed on
                         // (so we make it 1 more to get 1-pixel spacing between boxes)
 
 function drawGoalShape(startX, startY, shape, complete) {
@@ -851,7 +910,7 @@ var statusBarHeight = tileSize * 1.5;
 function drawStatusBar() {
     ctx.save();
     ctx.translate(0, mapHeight * tileSize);
-    ctx.shadowBlur = 3;
+    ctx.shadowBlur = 2;
     ctx.beginPath();
     ctx.fillStyle = 'rgb('+colors.dkgrey+')';
     ctx.shadowColor = ctx.fillStyle;
@@ -866,7 +925,7 @@ function drawStatusBar() {
     for (var i in goalShapes) {
         var dims = goalShapeDimensions(goalShapes[i][0]);
         overWidth += dims[0] + 2;
-        drawGoalShape(24 + (overWidth + dims[2]) * smallShapeSize,
+        drawGoalShape(20 + (overWidth + dims[2]) * smallShapeSize,
                       statusBarHeight / 2 - 1 - dims[1]/2 * smallShapeSize,
                       goalShapes[i][0], goalShapes[i][1]);
     }

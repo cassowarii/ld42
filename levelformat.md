@@ -11,3 +11,5 @@ The goal strings aren't actually case sensitive.
 I also want to add maybe '\*' for 'anything' and '\_' for 'must be blank'.
 
 **'text'**, which is optional, and contains some text to be displayed on the level.
+
+**'congration'**, which is also optional, and contains text to be displayed when the level is completed.
