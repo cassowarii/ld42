@@ -517,25 +517,52 @@ function update(delta) {
             if (obj.dist >= 1) {
                 obj.dist = 0;
                 obj.movedir = 0;
-                obj.x = Math.round(obj.x);
-                obj.y = Math.round(obj.y);
+                obj.x = goodmod(Math.round(obj.x), mapWidth);
+                obj.y = goodmod(Math.round(obj.y), mapHeight);
             }
         }
     }
 
 }
 
-function draw() {
-    ctx.fillStyle = 'rgb(0,0,0)';
+function drawObj(obj, group, ctx) {
+    //console.log(obj.bgcolor, objs[group].bgcolor);
+    ctx.save();
+    if (obj.bgcolor != undefined) {
+        ctx.fillStyle = 'rgb('+colors[obj.bgcolor]+')';
+    } else if (objs[group].bgcolor != undefined) {
+        ctx.fillStyle = 'rgb('+colors[objs[group].bgcolor]+')';
+    } else {
+        ctx.fillStyle = bgcolor;
+    }
+    ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.rect(0, 0, mapWidth * tileSize * mapScale, (mapHeight + 1) * tileSize * mapScale);
+    ctx.rect(0, 0, tileSize, tileSize);
     ctx.fill();
+    ctx.translate(1, 1);
+
+    ctx.shadowColor = 'rgb(' + colors[obj.color] + ')';
+    ctx.shadowBlur = 3;
+    var img = images[obj.imgid+'//'+obj.color];
+    if (img != undefined) {
+        if (obj.dir != 0) {
+            // rotate object properly
+            ctx.rotate(directionAngles[obj.dir-1][0]);
+            ctx.translate(directionAngles[obj.dir-1][1] * img.width, directionAngles[obj.dir-1][2] * img.height);
+        }
+        ctx.drawImage(img, 0, 0);
+    }
+    ctx.restore();
+}
+
+function draw() {
     ctx.fillStyle = bgcolor;
     ctx.beginPath();
     ctx.rect(0, 0, mapWidth * tileSize * mapScale + 2, mapHeight * tileSize * mapScale);
     ctx.fill();
     ctx.save();
     ctx.scale(mapScale, mapScale);
+
     Object.keys(objs).sort(function(a, b) { return (objs[a].z || 0) >= (objs[b].z || 0) }).map(function(group) {
         for (var o in objs[group]) {
             if (o != 'bgcolor' && o != 'z') {
@@ -543,36 +570,26 @@ function draw() {
 
                 ctx.save();
                 if (objs[group].slidy != undefined) {
-                    ctx.translate(obj.x * tileSize, obj.y * tileSize);
+                    ctx.translate(goodmod(obj.x, mapWidth) * tileSize, goodmod(obj.y, mapHeight) * tileSize);
                 } else {
                     ctx.translate(Math.floor(obj.x) * tileSize, Math.floor(obj.y) * tileSize);
                 }
-                //console.log(obj.bgcolor, objs[group].bgcolor);
-                if (obj.bgcolor != undefined) {
-                    ctx.fillStyle = 'rgb('+colors[obj.bgcolor]+')';
-                } else if (objs[group].bgcolor != undefined) {
-                    ctx.fillStyle = 'rgb('+colors[objs[group].bgcolor]+')';
-                } else {
-                    ctx.fillStyle = bgcolor;
-                }
-                ctx.shadowBlur = 0;
-                ctx.beginPath();
-                ctx.rect(0, 0, tileSize, tileSize);
-                ctx.fill();
-                ctx.translate(1, 1);
-
-                ctx.shadowColor = 'rgb(' + colors[obj.color] + ')';
-                ctx.shadowBlur = 3;
-                var img = images[obj.imgid+'//'+obj.color];
-                if (img != undefined) {
-                    if (obj.dir != 0) {
-                        // rotate object properly
-                        ctx.rotate(directionAngles[obj.dir-1][0]);
-                        ctx.translate(directionAngles[obj.dir-1][1] * img.width, directionAngles[obj.dir-1][2] * img.height);
-                    }
-                    ctx.drawImage(img, 0, 0);
-                }
+                drawObj(obj, group, ctx);
                 ctx.restore();
+
+                if (objs[group].slidy && goodmod(obj.x, mapWidth) > mapWidth - 1) {
+                    ctx.save();
+                    ctx.translate((goodmod(obj.x, mapWidth) - mapWidth) * tileSize, goodmod(obj.y, mapHeight) * tileSize);
+                    drawObj(obj, group, ctx);
+                    ctx.restore();
+                }
+
+                if (objs[group].slidy && goodmod(obj.y, mapHeight) > mapHeight - 1) {
+                    ctx.save();
+                    ctx.translate(goodmod(obj.x, mapWidth) * tileSize, (goodmod(obj.y, mapHeight) - mapHeight) * tileSize);
+                    drawObj(obj, group, ctx);
+                    ctx.restore();
+                }
             }
         }
     });
