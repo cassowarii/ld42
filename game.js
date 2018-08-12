@@ -1137,7 +1137,10 @@ function update(delta) {
                 for (var j in objs.boxes) {
                     if (checkShape(objs.boxes[j].x, objs.boxes[j].y, objs.boxes[j], goalShapes[i][0])) {
                         goalShapes[i][1] = true;
-                        if (!muted) chffp.play();
+                        if (!muted) {
+                            chffp.currentTime = 0;
+                            chffp.play();
+                        }
                         break;
                     }
                 }
