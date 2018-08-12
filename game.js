@@ -6,13 +6,20 @@ var framestep;
 
 var epsilon = 10;
 
-//var //bgm;
+// music etc
+var bgm;
+var youwin;
+var startmusic;
+var endmusic;
+var chffp;
+
+// flag for if you won
+var wonthegame;
+
+var font = '9px DejaVuSerif';
+var boldfont = '9px DejaVuSerifBold';
 
 var muted = false;
-
-var paused = false;
-var unpausedByClick = false;
-var clickedOnAButton = false;
 
 var me;
 
@@ -20,6 +27,8 @@ var levelIndex = 0;
 
 var leveltext;
 var leveltitle;
+
+var blurLevel = 0;
 
 var X = 1;
 var C = 2
@@ -31,7 +40,7 @@ var V = 7;
 
 var levels = [
     {
-        title: 'Starting point',
+        title: 'Entry Point',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -50,10 +59,10 @@ var levels = [
              [0,0,0,0,0, X,X,X,X,X, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
         goals: ['pRtDpRtDp'],
-        text: 'Welcome to GAME NAME.\n'
+        text: 'Welcome to PETRA!\n'
              +'See that GOAL at the bottom of the screen?\n'
              +'Your mission is to arrange the boxes to match it.\n'
-             +'(Press R to reset the puzzle.)',
+             +'(Use arrow keys, and press R to reset the puzzle.)',
         congration: 'Congratulations!\n'
                    +'Press any key to go to the next level.'
     },
@@ -108,7 +117,7 @@ var levels = [
         congration: 'Yes! I\'m so proud of you.'
     },
     {
-        title: 'The void',
+        title: 'The Void',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -142,7 +151,7 @@ var levels = [
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,X,X, X,X,X,X,X, X,0,0,0,0],
              [0,0,0,X,0, 0,0,X,0,0, X,0,0,0,0],
-             [0,0,0,X,0, 0,0,P,O,V, X,0,0,0,0],
+             [0,0,0,X,0, 0,0,P,0,V, X,0,0,0,0],
              [0,0,0,X,0, P,0,X,0,0, X,0,0,0,0],
 
              [0,0,0,X,0, T,0,X,T,Y, X,0,0,0,0],
@@ -151,13 +160,136 @@ var levels = [
              [0,0,0,X,X, X,X,X,X,X, X,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
         goals: ['tR*R*Ry', 'pR*R*Rv'],
-        text: 'Lastly, sometimes a certain space isn\'t\nimportant for the GOAL.\n'
-             +'Some things just aren\'t worth worrying about.\n'
-             +'(However, boxes we don\'t care about will still\nturn to stone.)',
+        text: 'Lastly, sometimes a certain space doesn\'t matter.\n'
+             +'This is marked with a "?" in the GOAL.\n'
+             +'You don\'t even need a box there!\n'
+             +'Some things just aren\'t worth worrying about.\n\n'
+             +'(But boxes matched by a "?" will still turn to stone.)',
         congration: 'Not too complicated, right?'
     },
     {
-        title: 'The Midas touch',
+        title: 'Mama Bird',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+
+             [0,0,0,0,X, X,X,Y,X,X, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,C,0,0, X,0,0,0,0],
+             [0,0,X,0,V, 0,0,V,0,0, Y,0,X,0,0],
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+
+             [0,0,0,0,X, 0,0,0,0,0, X,0,0,0,0],
+             [0,0,0,0,X, X,X,0,X,X, X,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['vU_D R_L L_', 'yU_D R_L L_', 'yDv'],
+        text: 'Press [M] to turn the music on and off.',
+        congration: 'Beautiful.'
+    },
+    {
+        title: 'Overlap',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,X,X, X,X,0,0,0],
+             [0,0,0,C,0, 0,0,X,O,O, O,X,0,0,0],
+             [0,0,0,0,0, 0,0,X,X,X, X,X,0,0,0],
+             [0,0,0,0,0, 0,T,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,T,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,T,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['tR*R*R*Ro', 'tR*R*R*Ro', 'tR*R*R*Ro'],
+        text: 'Your progress is saved automatically.\n'
+             +'Hold [SHIFT] and press [X] to delete your SAVE file.',
+        congration: 'Okay, that one wasn\'t that hard.',
+        goalwidth: 8,
+    },
+    {
+        title: 'One O\'Clock Jump',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, X,0,0,0,X, X,X,X,X,0],
+             [0,0,0,0,0, X,0,0,0,0, V,0,0,X,0],
+             [0,0,0,0,0, X,0,C,V,0, 0,V,0,X,0],
+             [0,0,0,0,0, X,0,0,0,0, V,0,0,X,0],
+             [0,0,0,0,0, X,0,0,0,X, X,X,X,X,0],
+
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['vR_Rv', 'vR_Rv'],
+        text: 'Now that the formalities are out of the way...\n'
+             +'Sit back, relax, and enjoy these puzzles I\'ve\n'
+             +'prepared for you.',
+        congration: 'Nice!',
+    },
+    {
+        title: 'L-Block',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,0,0,0,X, X,X,X,0,0],
+             [X,X,X,X,X, X,X,X,X,X, O,O,X,X,X],
+             [0,0,0,0,0, C,0,0,O,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,O,O,0, 0,0,0,0,0],
+             [X,X,X,X,X, X,X,X,X,X, X,O,O,X,X],
+
+             [0,0,0,0,0, 0,0,0,0,0, X,X,X,X,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['oDoRo', 'oLoDoDo'],
+        text: 'Here\'s a trickier one for you.',
+        congration: 'Your puzzle acumen continues to impress me.',
+    },
+    {
+        title: 'Possibility',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+
+             [0,0,0,0,X, X,X,X,X,0, X,T,X,0,0],
+             [0,0,0,0,X, 0,0,0,X,0, X,T,X,0,0],
+             [X,X,X,X,X, 0,C,0,X,X, X,T,X,X,X],
+             [0,0,0,0,0, O,0,O,0,0, 0,T,0,0,0],
+             [X,X,X,X,X, 0,0,0,X,X, X,T,X,X,X],
+
+             [0,0,0,0,X, 0,0,0,X,0, X,T,X,0,0],
+             [0,0,0,0,X, X,X,X,X,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, X,T,X,0,0]],
+        goals: ['oR_R_R_R_R_R_R_R_R_R_R_R_R_R_Ro', 'oRt'],
+        text: 'How many impossible things\n'
+             +'have you done today?',
+        goalwidth: 16,
+        congration: 'Add one more to the list.',
+    },
+    {
+        title: 'The Midas Touch',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -176,12 +308,58 @@ var levels = [
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
         goals: ['pRpRp', 'pDp', 'pRp'],
-        text: 'Let\'s see if you can solve this one!',
+        text: 'It\'s truly a tragic tale.',
         congration: 'Of course you could solve it.\n'
                    +'I never doubted you for a second.',
     },
     {
-        title: 'Countable infinity',
+        title: 'Ouroboros',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, X,X,X,X,0],
+             [0,0,0,X,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [X,X,X,X,0, 0,0,X,X,X, X,X,X,X,X],
+             [0,0,0,0,0, 0,0,X,0,P, 0,0,0,0,0],
+             [0,0,C,V,V, V,0,X,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,P, 0,0,0,0,0],
+             [X,X,X,X,0, 0,0,X,X,X, X,X,X,X,X],
+
+             [0,0,0,X,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, X,X,X,O,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['pD*Dv', 'vD*Dp', 'vDo'],
+        text: 'Help! I can\'t stop making mythology references.',
+        congration: 'Is there nothing you can\'t do?',
+    },
+    {
+        title: 'Corners',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+
+             [0,0,0,0,X, 0,0,O,O,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,Y,Y,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,O,0,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,O,C,O,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,0,O,0,0, X,0,0,0,0],
+
+             [0,0,0,0,X, 0,0,Y,Y,0, X,0,0,0,0],
+             [0,0,0,0,X, 0,O,O,0,0, X,0,0,0,0],
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['oR_Ro', 'oRoDoL_', 'oDoRoU_'],
+        text: 'Twelve is definitely a crowd.',
+        congration: 'Excellent crowd control!'
+    },
+    {
+        title: 'Countable Infinity',
         lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
@@ -201,15 +379,137 @@ var levels = [
              [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
         goals: ['yR_RyL UyD Dy'],
         text: 'Feeling a bit claustrophobic?',
-        congration: '(By the way, you\'re doing great!)',
-    }
+        congration: 'I applaud your perseverence in this trying time.',
+    },
+    {
+        title: 'Crossy Road',
+        lv: [[0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+             [X,X,X,X,X, 0,0,O,0,0, X,X,X,X,X],
+             [0,0,0,C,0, 0,O,V,O,0, 0,0,0,0,0],
+             [X,X,X,X,X, 0,0,O,0,0, X,X,X,X,X],
+             [0,0,0,0,0, X,0,0,0,X, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,X,0,X,0, 0,0,0,0,0]],
+        goals: ['oDo', 'oRo', 'vU_D L_R R_L D_'],
+        text: 'I\'m "running out\nof space" to fit\nthis text in!\nOhoho.',
+        congration: 'You are a smart\ncookie, aren\'t you?',
+    },
+    {
+        title: 'Positive Curvature',
+        lv: [[0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0],
+             [0,X,X,X,X, X,X,X,X,X, 0,X,X,X,0],
+
+             [0,X,0,0,0, 0,0,X,Y,0, 0,0,0,X,0],
+             [0,X,0,T,0, 0,0,X,0,0, 0,0,0,X,0],
+             [0,X,0,0,C, 0,0,X,0,0, 0,0,0,X,0],
+             [0,X,0,0,0, 0,0,X,0,0, 0,T,0,X,0],
+             [0,X,0,0,0, 0,Y,X,0,0, 0,0,0,X,0],
+
+             [0,X,X,X,0, X,X,X,X,X, X,X,X,X,0],
+             [0,0,0,X,0, 0,0,0,0,0, 0,X,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, 0,X,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,X, 0,X,0,0,0]],
+        goals: ['tR*Ry', 'yR*Rt'],
+        text: 'I just want to say...\nI\'ve really enjoyed our time\ntogether.',
+        congration: 'You\'ve come so far!',
+    },
+    {
+        title: 'Bookends',
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,X,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,X, X,0,0,0,0],
+
+             [0,0,0,0,0, 0,0,X,0,T, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,T, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,X,T, 0,C,0,X,0],
+             [0,0,0,0,0, 0,0,X,0,T, 0,T,0,X,0],
+             [0,0,0,0,0, 0,0,X,0,T, 0,X,X,X,0],
+
+             [0,0,0,0,0, 0,0,X,0,X, X,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,X,X,X, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['tL DtR Dt', 'tR DtL Dt'],
+        text: 'But like all things -\nespecially things\nmade in 2 days -\n'
+             +'our time together\nmust come to\nan end.',
+        congration: 'Not only are you\na smart cookie,\nyou\'re also a\nrising star!',
+    },
+    {
+        title: 'Freedom',
+        end: true,
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,X,X,X, X,X,X,X,X, X,X,X,0,0],
+             [0,0,X,0,0, Y,0,Y,0,Y, 0,0,X,0,0],
+             [0,0,X,0,Y, 0,Y,0,Y,0, Y,0,X,0,0],
+             [0,0,X,0,0, Y,0,Y,0,Y, 0,0,X,0,0],
+             [0,0,X,0,Y, 0,Y,C,Y,0, Y,0,X,0,0],
+
+             [0,0,X,0,0, Y,0,Y,0,Y, 0,0,X,0,0],
+             [0,0,X,0,Y, 0,Y,0,Y,0, Y,0,X,0,0],
+             [0,0,X,0,0, Y,0,Y,0,Y, 0,0,X,0,0],
+             [0,0,X,X,X, X,X,X,X,X, X,X,X,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0]],
+        goals: ['yRyUyD Ry', 'yDyRyL Dy', 'yLyDyU Ly', 'yDyLyR Dy', 'yRyUyD Ry', 'yLyDyU Ly'],
+        text: 'Sadly, this is the last level.\n'
+             +'I\'ll miss you when you\'re gone.',
+        congration: 'Congratulations!\nI am so proud of you.',
+    },
 ]
+
+var endScene = {
+        title: 'CONGRATULATIONS!',
+        end: true,
+        lv: [[0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,C,0,0, 0,0,0,0,0],
+             [0,0,0,0,0, 0,0,V,0,0, 0,0,0,0,0],
+
+             [0,0,0,0,0, 0,P,X,O,0, 0,0,0,0,0],
+             [0,0,0,0,0, T,X,X,X,Y, 0,0,0,0,0],
+             [0,0,0,0,0, X,X,X,X,X, 0,0,0,0,0],
+             [0,0,0,0,X, X,X,X,X,X, X,0,0,0,0],
+             [0,0,0,X,X, X,X,X,X,X, X,X,0,0,0]],
+        goals: ['p', 'oRo', 'yRyUy', 'tRtUtLt', 'vRvUvRvDv', 'tRpRoUyLvU Rt'],
+        text: 'You\'ve completed my game!!\n'
+             +'I hope you had a good time. I know I did!\n'
+             +'If you liked the game, don\'t forget to leave feedback!\n\n'
+             +'You can also check out my other games at\ncassowary.me!'
+    };
 
 function goodmod(x, n) {
      return ((x%n)+n)%n;
 }
 
-var goalShapes = [ ['yRoDv', false], ['pRpDtRpDp', false] ];
+var goalShapes = [ ['p', false], ['oRo', false], ['yRyUy', false], ['tRtUtLt', false], ['vRvUvRvDv', false], ['tRtRtUtLtU Rt', true] ];
 
 window.requestAnimFrame = (function() {
     return window.requestAnimationFrame      ||
@@ -356,11 +656,26 @@ ready(function() {
         wall: 'wall.png',
     }, function() {
         if (audiocheck.canPlayType('audio/mpeg')) {
-            //bgm = new Audio('walkabout.mp3');
+            bgm = new Audio('jazzpuzzle.mp3');
+            endmusic = new Audio('petraend.mp3');
+            startmusic = new Audio('petrastart.mp3');
         } else if (audiocheck.canPlayType('audio/ogg')) {
-            //bgm = new Audio('walkabout.ogg');
+            bgm = new Audio('jazzpuzzle.ogg');
+            endmusic = new Audio('petraend.ogg');
+            startmusic = new Audio('petrastart.ogg');
         }
-        //bgm.loop = true;
+        bgm.loop = true;
+        endmusic.loop = true;
+        startmusic.loop = true;
+        youwin = new Audio('youwin.wav');
+        youwin.onended = function() {
+            if (!wonthegame) {
+                bgm.play();
+            } else {
+                endmusic.play();
+            }
+        }
+        chffp = new Audio('chffp.wav');
         initialize();
         loop();
     });
@@ -370,8 +685,18 @@ var score = 0;
 
 var lives = 5;
 
+var titleReady = false;
+
+var titleImg;
+
 function initialize() {
     framestep = initialframestep;
+
+    titleImg = new Image();
+    titleImg.onload = function() {
+        titleReady = true;
+    }
+    titleImg.src = 'title.png';
 
     objs = {};
 
@@ -379,20 +704,40 @@ function initialize() {
     objs.me.slidy = true; // slidy allows it to have fractional coordinates
     me = objs.me[0]; // shorter name for ungrouped object (objects are in lists for snakes and whatnot that take up multiple tiles)
 
-    objs.boxes = [];
+    objs.boxes = [
+        new obj('boxes', 'boxpink', me.x + 2, me.y + 2, 'pink'),
+        new obj('boxes', 'boxturquoise', me.x + 1, me.y + 2, 'turquoise'),
+        new obj('boxes', 'boxpurple', me.x, me.y + 2, 'purple'),
+        new obj('boxes', 'boxyellow', me.x - 1, me.y + 2, 'yellow'),
+        new obj('boxes', 'boxorange', me.x - 2, me.y + 2, 'orange'),
+    ];
     objs.boxes.slidy = true;
 
     objs.walls = [];
 
-    loadLevel(0);
-
     readyToGo = true;
+
+    startmusic.play();
+
+    justStarted = true;
 }
 
 function nextLevel() {
     stopCelebrating();
-    levelIndex++;
-    loadLevel(levelIndex);
+    if (levels[levelIndex].end == undefined) {
+        levelIndex++;
+        loadLevel(levelIndex);
+    } else {
+        // You won the game!
+        wonthegame = true;
+        if (!bgm.paused) {
+            // This means they waited a while on the last 'celebration' screen,
+            // so the BGM came back. So we have to play the end music ourselves.
+            bgm.pause();
+            endmusic.play();
+        }
+        loadLevelObject(endScene);
+    }
 }
 
 function randomColor() {
@@ -412,27 +757,27 @@ function randomColor() {
 
 var inputQueue = []
 
-function unGameOver() {
-    console.log("hi");
-    //bgm.pause();
-    //bgm.currentTime = 0;
-    objs = {};
-    justStarted = true;
-    initialize();
-    //loop();
-}
-
 var celebKeyDown = false;
+
+var shiftDown = false;
+var dataDeleted = false;
 
 document.onkeydown = function(e) {
     if (!justStarted) {
-        if (!paused && readyToGo) {
-            if (celebrating && !e.repeat) {
-                celebKeyDown = true;
-            } else {
-                key = e.keyCode;
-                if (37 <= key && 40 >= key || key == 32) {
-                    e.preventDefault();
+        if (readyToGo) {
+            if (e.keyCode == 16) {
+                shiftDown = true;
+            } else if (e.keyCode == 88 && shiftDown) {
+                dataDeleted = true;
+                deleteData();
+            } else if (!wonthegame) {
+                if (celebrating && !e.repeat) {
+                    celebKeyDown = true;
+                } else {
+                    key = e.keyCode;
+                    if (37 <= key && 40 >= key || key == 32) {
+                        e.preventDefault();
+                    }
                 }
             }
         }
@@ -441,99 +786,39 @@ document.onkeydown = function(e) {
 
 document.onkeyup = function(e) {
     if (readyToGo) {
-        if (celebrating) {
-            if (celebKeyDown) {
-                celebKeyDown = false;
-                inputQueue = [];
-                key = 0;
-                if (e.keyCode == 82) {
-                    reset();
-                } else {
-                    nextLevel();
-                }
-            }
-        } else {
-            if (e.keyCode == 82 && !celebrating) {
-                reset();
-            } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
-                if (justStarted) {
-                    justStarted = false;
-                    onStart();
-                } else {
-                    if (key == e.keyCode) {
-                        key = 0;
+        if (e.keyCode == 16) {
+            shiftDown = false;
+            dataDeleted = false;
+        } else if (e.keyCode == 77) {
+            toggleMute();
+        } else if (justStarted) {
+            justStarted = false;
+            onStart();
+        } else if (!wonthegame) {
+            if (celebrating) {
+                if (celebKeyDown) {
+                    celebKeyDown = false;
+                    inputQueue = [];
+                    key = 0;
+                    if (e.keyCode == 82) {
+                        reset();
+                    } else {
+                        nextLevel();
                     }
                 }
-                e.preventDefault();
-            }
-        }
-    }
-}
-
-var touchX;
-var touchY;
-
-var newTouchX;
-var newTouchY;
-
-document.ontouchstart = function(e) {
-    if (!paused) {
-        touchX = e.touches[0].clientX;
-        touchY = e.touches[0].clientY;
-        newTouchX = e.touches[0].clientX;
-        newTouchY = e.touches[0].clientY;
-    }
-}
-
-document.ontouchmove = function(e) {
-    if (!paused) {
-        newTouchX = e.touches[0].clientX;
-        newTouchY = e.touches[0].clientY;
-    }
-}
-
-document.ontouchend = function(e) {
-    if (!paused) {
-        if (justStarted || gameover) {
-            document.onkeyup({keyCode: 32});
-        } else {
-            dx = newTouchX - touchX;
-            dy = newTouchY - touchY;
-            //lurd 37 38 39 40
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // horizontal
-                if (dx > epsilon) {
-                    //key = 39;
-                    inputQueue.push(directions.right);
-                } else if (dx < -epsilon) {
-                    //key = 37;
-                    inputQueue.push(directions.left);
-                } else {
-                    key = 0;
-                }
-            } else if (Math.abs(dy) > Math.abs(dx)) {
-                // vertical
-                if (dy > epsilon) {
-                    //key = 40;
-                    inputQueue.push(directions.down);
-                } else if (dy < -epsilon) {
-                    //key = 38;
-                    inputQueue.push(directions.up);
-                } else {
-                    key = 0;
-                }
             } else {
-                key = 0;
+                if (e.keyCode == 82 && !celebrating) {
+                    reset();
+                } else if (37 <= e.keyCode && 40 >= e.keyCode || e.keyCode == 32) {
+                    if (!justStarted) {
+                        if (key == e.keyCode) {
+                            key = 0;
+                        }
+                    }
+                    e.preventDefault();
+                }
             }
         }
-    }
-}
-
-document.getElementById("canvas").onmouseup = function(e) {
-    if (!clickedOnAButton) {
-        document.onkeydown(e);
-    } else {
-        clickedOnAButton = false;
     }
 }
 
@@ -565,10 +850,8 @@ function loop(timestamp) {
     keydo();
 
     while (timedelta >= framestep) {
-        if (!paused) {
-            if (!justStarted) {
-                update(framestep);
-            }
+        if (!justStarted) {
+            update(framestep);
         }
         timedelta -= framestep;
     }
@@ -595,34 +878,27 @@ function objsAtPos(x, y) {
     return result;
 }
 
-var unpauseOnFocus = false;
-
-window.onfocus = function(e) {
-    if (unpauseOnFocus) {
-        unpauseOnFocus = false;
-        paused = false;
-    }
-}
-
-window.onblur = function(e) {
-    if (!paused) {
-        unpauseOnFocus = true;
-    }
-    paused = true;
-}
-
-document.getElementById("mute").onclick = function(e) {
+function toggleMute() {
     muted = !muted;
     if (muted) {
-        //bgm.pause();
-        document.getElementById("mute").innerHTML = "muted";
-    } else {
-        if (!justStarted && !dead) {
-            //bgm.play();
+        if (youwin.currentTime && !youwin.paused) {
+            youwin.pause();
+        } else if (wonthegame) {
+            endmusic.pause();
+        } else if (justStarted) {
+            startmusic.pause();
+        } else {
+            bgm.pause();
         }
-        document.getElementById("mute").innerHTML = "mute";
+    } else {
+        if (wonthegame) {
+            endmusic.play();
+        } else if (justStarted) {
+            startmusic.play();
+        } else {
+            bgm.play();
+        }
     }
-    clickedOnAButton = true;
 }
 
 function shuffle(a) {
@@ -636,9 +912,10 @@ function shuffle(a) {
 }
 
 function onStart() {
-    deleteObject('title');
-    changeTextColor('score', 'white');
-    //if (!muted) //bgm.play();
+    startmusic.pause();
+    if (!muted) bgm.play();
+    levelIndex = parseInt(localStorage.getItem("casso.ld42.save") || "0");
+    reset();
 }
 
 function moveCoords(x, y, dir) {
@@ -699,11 +976,13 @@ function boxAtPos(x,y) {
     if (os.length < 1) return null;
     if (os[0].group == 'boxes') return os[0];
     if (os[0].group == 'char') return os[0]; // we want empty spaces to really be empty! but nothing can actually match us bc we're green
+    if (os[0].group == 'walls') return os[0]; // we also don't want walls to count as empty space... this function is increasingly misnamed
     return null;
 }
 
 function killBox(box) {
     if (box == null) return;
+    if (box.group == 'char') return;
     console.log("killing box at ", box.x, box.y);
     box.changeColor('grey');
     box.rooted = true;
@@ -726,10 +1005,14 @@ function boxColor(ch) {
 function matchesPattern(box, pat) {
     return (pat == '*' || pat == ' '
          || box == null && pat == '_'
-         || box != null && box.color == boxColor(pat));
+         || box != null && box.group != 'walls' && box.color == boxColor(pat));
 }
 
 function checkShape(x, y, box, shape) {
+    if (box && box.color == 'grey' && shape[0] != '*' && shape[0] != ' ') {
+        return false;
+    }
+
     // base case
     if (shape.length == 1) {
         if (matchesPattern(box, shape[0])) {
@@ -740,9 +1023,6 @@ function checkShape(x, y, box, shape) {
         }
     }
 
-    if (box && box.color == 'grey' && shape[0] != '*') {
-        return false;
-    }
 
     // otherwise is the rest of the shape good?
     shape = shape.toUpperCase();
@@ -767,7 +1047,7 @@ function checkShape(x, y, box, shape) {
     var nextbox = boxAtPos(nextX, nextY);
 
     var valid = checkShape(nextX, nextY, nextbox, rest);
-    if (valid) {
+    if (valid && shape[0] != ' ') {
         killBox(box);
     }
     return valid;
@@ -857,6 +1137,8 @@ function update(delta) {
                 for (var j in objs.boxes) {
                     if (checkShape(objs.boxes[j].x, objs.boxes[j].y, objs.boxes[j], goalShapes[i][0])) {
                         goalShapes[i][1] = true;
+                        if (!muted) chffp.play();
+                        break;
                     }
                 }
                 if (!goalShapes[i][1]) {
@@ -871,11 +1153,23 @@ function update(delta) {
     }
 }
 
+function deleteData() {
+    localStorage.setItem("casso.ld42.save", 0);
+}
+
 function celebrate() {
+    bgm.pause();
     miniCelebrationTimer = 0;
     celebrating = true;
+    if (levels[levelIndex].end == undefined) {
+        localStorage.setItem("casso.ld42.save", levelIndex + 1);
+    }
     if (levels[levelIndex].congration != undefined) {
         leveltext = levels[levelIndex].congration;
+    }
+    if (!muted) {
+        youwin.currentTime = 0;
+        youwin.play();
     }
 }
 
@@ -940,7 +1234,7 @@ function drawObj(obj, group, ctx) {
     ctx.translate(1, 1);
 
     ctx.shadowColor = 'rgb(' + colors[obj.color] + ')';
-    ctx.shadowBlur = 2;
+    ctx.shadowBlur = blurLevel;
     var img = images[obj.imgid+'//'+obj.color];
     if (img != undefined) {
         if (obj.dir != 0) {
@@ -960,6 +1254,61 @@ function draw() {
     ctx.fill();
     ctx.save();
     ctx.scale(mapScale, mapScale);
+
+    /* draw text underneath objects */
+    ctx.save();
+
+    if (!shiftDown) {
+        ctx.fillStyle = 'rgb('+colors.purple+')';
+        ctx.shadowBlur = blurLevel;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.font = boldfont;
+        if (!justStarted) {
+            if (!wonthegame) {
+                ctx.fillText((levelIndex+1) + ". " + leveltitle, 20, 28);
+            } else {
+                // Don't print level number on ending screen.
+                ctx.fillText(leveltitle, 20, 28);
+            }
+        } else {
+            ctx.fillText("loading!", 20, 28);
+        }
+    } else {
+        ctx.fillStyle = 'rgb('+colors.pink+')';
+        ctx.font = boldfont;
+        if (!dataDeleted) {
+            ctx.fillText("SHIFT+X: delete save data", 20, 28);
+        } else {
+            ctx.fillText("Save data deleted.", 20, 28);
+        }
+    }
+
+    if (window.leveltext != undefined) {
+        ctx.fillStyle = 'rgb('+colors.grey+')';
+        ctx.shadowBlur = blurLevel;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.font = font;
+        var texts = leveltext.split('\n');
+        for (var i in texts) {
+            ctx.fillText(texts[i], 20, 40 + i * 12);
+        }
+    }
+
+    ctx.restore();
+
+    if (justStarted && titleReady) {
+        ctx.save();
+        ctx.drawImage(titleImg, 0, 0);
+
+        ctx.font = boldfont;
+        ctx.fillStyle = 'rgb('+colors.grey+')';
+        ctx.fillText("by cassowary", 20, 208);
+        ctx.fillText("[http://cassowary.me]", 20, 222);
+        ctx.fillText("Made for Ludum Dare 42", 20, 236);
+        ctx.fillStyle = 'rgb('+colors.green+')';
+        ctx.fillText("press any key to start!", 20, 250);
+        ctx.restore();
+    }
 
     Object.keys(objs).sort(function(a, b) { return (objs[a].z || 0) >= (objs[b].z || 0) }).map(function(group) {
         for (var o in objs[group]) {
@@ -991,23 +1340,6 @@ function draw() {
             }
         }
     });
-
-    ctx.fillStyle = 'rgb('+colors.purple+')';
-    ctx.shadowBlur = 2;
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.font = 'bold 9px serif';
-    ctx.fillText((levelIndex+1) + ". " + leveltitle, 20, 28);
-
-    if (window.leveltext != undefined) {
-        ctx.fillStyle = 'rgb('+colors.grey+')';
-        ctx.shadowBlur = 2;
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.font = '9px serif';
-        var texts = leveltext.split('\n');
-        for (var i in texts) {
-            ctx.fillText(texts[i], 20, 40 + i * 12);
-        }
-    }
 
     drawStatusBar();
 
@@ -1065,7 +1397,7 @@ function drawGoalShape(startX, startY, shape, complete) {
     var color = boxColor(boxType);
     if (color != '') {
         if (complete) color = 'green';
-        ctx.shadowBlur = 2;
+        ctx.shadowBlur = blurLevel;
         ctx.shadowColor = 'rgb(' + colors[color] + ')';
         ctx.drawImage(images[nubType + '//' + color], startX, startY);
     }
@@ -1090,17 +1422,17 @@ var statusBarHeight = tileSize * 1.5;
 function drawStatusBar() {
     ctx.save();
     ctx.translate(0, mapHeight * tileSize);
-    ctx.shadowBlur = 2;
+    ctx.shadowBlur = blurLevel;
     ctx.beginPath();
     ctx.fillStyle = 'rgb('+colors.dkgrey+')';
     ctx.shadowColor = ctx.fillStyle;
     ctx.rect(-5, 0, mapWidth * tileSize + 5, statusBarHeight + 2);
     ctx.fill();
-    ctx.shadowBlur = 2;
+    ctx.shadowBlur = blurLevel;
     ctx.shadowColor = 'rgb('+colors.grey+')';
     ctx.drawImage(images['goal//grey'], 2, statusBarHeight / 2 - 8.5);
 
-    var spacing = 6;
+    var spacing = levels[levelIndex].goalwidth || 6;
     var overWidth = spacing/2;
 
     for (var i in goalShapes) {
