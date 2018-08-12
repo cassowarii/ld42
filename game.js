@@ -775,13 +775,11 @@ document.onkeydown = function(e) {
                     celebKeyDown = true;
                 } else {
                     key = e.keyCode;
-                    if (37 <= key && 40 >= key || key == 32) {
-                        e.preventDefault();
-                    }
                 }
             }
         }
     }
+    e.preventDefault();
 }
 
 document.onkeyup = function(e) {
@@ -815,10 +813,10 @@ document.onkeyup = function(e) {
                             key = 0;
                         }
                     }
-                    e.preventDefault();
                 }
             }
         }
+        e.preventDefault();
     }
 }
 
